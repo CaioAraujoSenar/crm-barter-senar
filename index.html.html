@@ -1,0 +1,2928 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRM Barter & Regularização — SENAR/PA</title>
+
+  <!-- Fonte Inter (Google Fonts) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+          colors: {
+            forest: {
+              950: '#052e16',
+              900: '#14532d',
+              800: '#166534',
+              700: '#15803d',
+              600: '#16a34a',
+              100: '#dcfce7',
+              50: '#f0fdf4',
+            },
+            amberbrand: {
+              700: '#b45309',
+              600: '#d97706',
+              500: '#f59e0b',
+              100: '#fef3c7',
+              50: '#fffbeb',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Leaflet CSS via CDN -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+
+  <style>
+    /* Estilos base e barra de rolagem institucional */
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* Ajustes customizados para o mapa Leaflet e Popups executivos */
+    #map-container {
+      width: 100%;
+      height: 640px;
+      min-height: 460px;
+      z-index: 10;
+    }
+
+    @media (max-width: 1024px) {
+      #map-container {
+        height: 480px;
+      }
+    }
+
+    .leaflet-popup-content-wrapper {
+      border-radius: 14px !important;
+      padding: 0 !important;
+      overflow: hidden;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.18), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+      border: 1px solid #e2e8f0;
+    }
+
+    .leaflet-popup-content {
+      margin: 0 !important;
+      width: 320px !important;
+      max-width: 85vw !important;
+      font-family: 'Inter', system-ui, sans-serif !important;
+      line-height: 1.4 !important;
+    }
+
+    .leaflet-popup-close-button {
+      color: #ffffff !important;
+      top: 10px !important;
+      right: 10px !important;
+      width: 24px !important;
+      height: 24px !important;
+      font-size: 18px !important;
+      background: rgba(255, 255, 255, 0.15) !important;
+      border-radius: 9999px !important;
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .leaflet-popup-close-button:hover {
+      background: rgba(255, 255, 255, 0.3) !important;
+    }
+
+    /* Marcador customizado no mapa */
+    .custom-pin-wrapper {
+      background: transparent;
+      border: none;
+    }
+
+    .pin-pulse {
+      animation: pinPulse 1.8s infinite;
+    }
+
+    @keyframes pinPulse {
+      0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.7);
+      }
+      70% {
+        transform: scale(1.08);
+        box-shadow: 0 0 0 12px rgba(217, 119, 6, 0);
+      }
+      100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(217, 119, 6, 0);
+      }
+    }
+
+    /* Animação suave para modais e toasts */
+    @keyframes fadeSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-fade-up {
+      animation: fadeSlideUp 0.25s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[#f8fafc] text-slate-800 antialiased">
+
+  <!-- =====================================================================
+       CABEÇALHO INSTITUCIONAL E NAVEGAÇÃO POR ABAS
+       ===================================================================== -->
+  <header class="bg-gradient-to-r from-[#14532d] via-[#166534] to-[#14532d] text-white shadow-lg border-b border-emerald-900/40">
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-0">
+      <!-- Linha superior: Identidade e Botões de Ação -->
+      <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 pb-5">
+        <div class="flex items-start sm:items-center gap-3.5">
+          <!-- Ícone Institucional Agroambiental -->
+          <div class="w-12 h-12 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0 shadow-inner">
+            <svg class="w-7 h-7 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wider uppercase bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                SENAR / PARÁ • REGULARIZAÇÃO AMBIENTAL
+              </span>
+              <span id="storage-indicator" class="text-[11px] text-emerald-200/80 hidden sm:inline">
+                • Sincronizado localmente
+              </span>
+            </div>
+            <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-white mt-1">
+              CRM Barter & Regularização — SENAR/PA
+            </h1>
+            <p class="text-xs sm:text-sm text-emerald-100/90 mt-0.5">
+              Gestão de Produtores Rurais, Passivo PRODES (2008–2025) e Georreferenciamento
+            </p>
+          </div>
+        </div>
+
+        <!-- Botões de Ação Globais -->
+        <div class="flex flex-wrap items-center gap-2.5">
+          <button
+            type="button"
+            onclick="openProducerModal()"
+            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#d97706] hover:bg-amber-600 active:bg-amber-700 text-white font-semibold text-xs sm:text-sm shadow-md shadow-amber-950/30 transition cursor-pointer"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            + Novo Produtor
+          </button>
+
+          <!-- Input oculto para importação de planilha Excel -->
+          <input type="file" id="excel-file-input" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleExcelImport(event)" />
+          <button
+            type="button"
+            onclick="document.getElementById('excel-file-input').click()"
+            class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 font-medium text-xs sm:text-sm transition cursor-pointer"
+            title="Importar registros de uma planilha Excel (.xlsx)"
+          >
+            <svg class="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            Importar Excel (.xlsx)
+          </button>
+
+          <button
+            type="button"
+            onclick="exportToExcel()"
+            class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 font-medium text-xs sm:text-sm transition cursor-pointer"
+            title="Baixar base completa em formato Excel (.xlsx)"
+          >
+            <svg class="w-4 h-4 text-amber-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Exportar Excel (.xlsx)
+          </button>
+
+          <button
+            type="button"
+            onclick="confirmRestoreOriginal()"
+            class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-emerald-950/60 hover:bg-emerald-950/90 text-emerald-200 border border-emerald-700/50 font-medium text-xs sm:text-sm transition cursor-pointer"
+            title="Restaurar os 56 registros originais da planilha Barter SENAR"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Restaurar Planilha Original
+          </button>
+        </div>
+      </div>
+
+      <!-- Barra de Sincronização Online (Caio & Deice) -->
+      <div class="mb-4 px-3.5 py-2.5 rounded-xl bg-emerald-950/55 border border-emerald-700/50 flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2.5 text-xs">
+          <span class="font-bold uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+            Sincronização Online:
+          </span>
+
+          <!-- Seletor de Usuário Ativo (Caio / Deice) -->
+          <div class="inline-flex items-center bg-emerald-950/80 p-0.5 rounded-lg border border-emerald-700/60">
+            <button
+              type="button"
+              id="user-btn-Caio"
+              onclick="setActiveUser('Caio')"
+              class="px-2.5 py-1 rounded-md text-xs font-bold transition cursor-pointer bg-amber-500 text-slate-950"
+            >
+              Caio
+            </button>
+            <button
+              type="button"
+              id="user-btn-Deice"
+              onclick="setActiveUser('Deice')"
+              class="px-2.5 py-1 rounded-md text-xs font-bold transition cursor-pointer text-emerald-200 hover:text-white"
+            >
+              Deice
+            </button>
+          </div>
+
+          <!-- Status da Conexão em Tempo Real -->
+          <span id="cloud-status-badge" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 text-emerald-100 border border-white/15 font-medium">
+            <span id="cloud-status-dot" class="w-2 h-2 rounded-full bg-amber-400"></span>
+            <span id="cloud-status-text">Modo Local (Configure a nuvem para sincronizar com a Deice)</span>
+          </span>
+        </div>
+
+        <!-- Controles de Sincronização -->
+        <div class="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            id="btn-sync-now"
+            onclick="syncNow(true)"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-700/80 hover:bg-emerald-600 text-white text-xs font-semibold border border-emerald-500/40 transition cursor-pointer"
+            title="Buscar e enviar atualizações agora"
+          >
+            <svg id="sync-icon-spin" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Sincronizar
+          </button>
+
+          <button
+            type="button"
+            onclick="openCloudModal()"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 text-xs font-semibold border border-amber-400/40 transition cursor-pointer"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Configurar Nuvem
+          </button>
+        </div>
+      </div>
+
+      <!-- Navegação por Abas -->
+      <nav class="flex items-center gap-1 sm:gap-2 overflow-x-auto no-scrollbar" aria-label="Abas principais">
+        <button
+          type="button"
+          id="tab-btn-crm"
+          onclick="switchTab('crm')"
+          class="tab-btn active flex items-center gap-2 px-4 sm:px-5 py-3 text-xs sm:text-sm font-semibold rounded-t-xl transition whitespace-nowrap cursor-pointer bg-[#f8fafc] text-[#14532d] shadow-sm"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          Gestão CRM (Produtores)
+          <span id="badge-tab-count" class="ml-1 px-2 py-0.5 text-[11px] rounded-full bg-emerald-100 text-emerald-800 font-bold">56</span>
+        </button>
+
+        <button
+          type="button"
+          id="tab-btn-mapa"
+          onclick="switchTab('mapa')"
+          class="tab-btn flex items-center gap-2 px-4 sm:px-5 py-3 text-xs sm:text-sm font-semibold rounded-t-xl transition whitespace-nowrap cursor-pointer text-emerald-100 hover:text-white hover:bg-white/10"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+          </svg>
+          Mapa Georreferenciado
+        </button>
+
+        <button
+          type="button"
+          id="tab-btn-indicadores"
+          onclick="switchTab('indicadores')"
+          class="tab-btn flex items-center gap-2 px-4 sm:px-5 py-3 text-xs sm:text-sm font-semibold rounded-t-xl transition whitespace-nowrap cursor-pointer text-emerald-100 hover:text-white hover:bg-white/10"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+          Indicadores por Município
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- =====================================================================
+       CONTEÚDO PRINCIPAL
+       ===================================================================== -->
+  <main class="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- 1. PAINEL DE KPIs DINÂMICOS (SEMPRE VISÍVEL NO TOPO) -->
+    <section aria-label="Indicadores Gerais" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <!-- KPI 1: Total de Produtores -->
+      <div class="bg-white rounded-2xl border border-[#e2e8f0] p-4 sm:p-5 shadow-sm hover:shadow-md transition">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Produtores Cadastrados</span>
+          <div class="w-9 h-9 rounded-xl bg-emerald-50 text-[#166534] flex items-center justify-center">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
+        </div>
+        <div class="mt-3 flex items-baseline gap-2">
+          <span id="kpi-total-produtores" class="text-2xl sm:text-3xl font-extrabold text-slate-900">56</span>
+          <span id="kpi-municipios-count" class="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">em 9 municípios</span>
+        </div>
+        <p class="text-xs text-slate-400 mt-1.5" id="kpi-filtro-status">Exibindo base completa</p>
+      </div>
+
+      <!-- KPI 2: Área Total das Propriedades -->
+      <div class="bg-white rounded-2xl border border-[#e2e8f0] p-4 sm:p-5 shadow-sm hover:shadow-md transition">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Área Total Propriedades</span>
+          <div class="w-9 h-9 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+            </svg>
+          </div>
+        </div>
+        <div class="mt-3 flex items-baseline gap-1.5">
+          <span id="kpi-area-total" class="text-2xl sm:text-3xl font-extrabold text-slate-900">2.844,69</span>
+          <span class="text-sm font-semibold text-slate-500">ha</span>
+        </div>
+        <p class="text-xs text-slate-400 mt-1.5">Média de <span id="kpi-area-media" class="font-semibold text-slate-600">50,80 ha</span> / propriedade</p>
+      </div>
+
+      <!-- KPI 3: Passivo PRODES 2008-2025 Total -->
+      <div class="bg-white rounded-2xl border border-[#e2e8f0] p-4 sm:p-5 shadow-sm hover:shadow-md transition">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Passivo PRODES 2008–2025</span>
+          <div class="w-9 h-9 rounded-xl bg-amber-50 text-[#d97706] flex items-center justify-center">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+        </div>
+        <div class="mt-3 flex items-baseline gap-1.5">
+          <span id="kpi-prodes-total" class="text-2xl sm:text-3xl font-extrabold text-[#d97706]">613,53</span>
+          <span class="text-sm font-semibold text-amber-700">ha</span>
+        </div>
+        <p class="text-xs text-slate-400 mt-1.5">Equivale a <span id="kpi-prodes-pct" class="font-semibold text-amber-700">21,57%</span> da área total</p>
+      </div>
+
+      <!-- KPI 4: Empresas de Regularização -->
+      <div class="bg-white rounded-2xl border border-[#e2e8f0] p-4 sm:p-5 shadow-sm hover:shadow-md transition">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Empresas Regularização</span>
+          <div class="w-9 h-9 rounded-xl bg-sky-50 text-sky-700 flex items-center justify-center">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+          </div>
+        </div>
+        <div class="mt-2.5 flex items-center justify-between text-xs font-bold">
+          <span class="text-emerald-700 flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-600 inline-block"></span>
+            Belterra: <span id="kpi-belterra-count" class="text-sm">28</span>
+          </span>
+          <span class="text-amber-700 flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span>
+            JS Rural: <span id="kpi-js-count" class="text-sm">28</span>
+          </span>
+        </div>
+        <!-- Barra comparativa proporcional -->
+        <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden flex mt-2.5">
+          <div id="kpi-bar-belterra" class="bg-emerald-600 h-full transition-all duration-300" style="width: 50%"></div>
+          <div id="kpi-bar-js" class="bg-amber-500 h-full transition-all duration-300" style="width: 50%"></div>
+        </div>
+      </div>
+
+      <!-- KPI 5: Termos Barter Assinados -->
+      <div class="bg-white rounded-2xl border border-[#e2e8f0] p-4 sm:p-5 shadow-sm hover:shadow-md transition">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Termos Barter Assinados</span>
+          <div class="w-9 h-9 rounded-xl bg-emerald-100 text-[#14532d] flex items-center justify-center">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        </div>
+        <div class="mt-3 flex items-baseline gap-2">
+          <span id="kpi-barter-count" class="text-2xl sm:text-3xl font-extrabold text-[#14532d]">56</span>
+          <span id="kpi-barter-pct" class="text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">100%</span>
+        </div>
+        <p class="text-xs text-slate-400 mt-1.5">Adesão formalizada ao programa</p>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         ABA 1: GESTÃO CRM (PRODUTORES)
+         =================================================================== -->
+    <section id="view-crm" class="space-y-4 animate-fade-up">
+      <!-- Barra de Filtros CRM -->
+      <div class="bg-white rounded-2xl border border-[#e2e8f0] p-4 sm:p-5 shadow-sm">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-3.5 items-end">
+          <!-- Busca Rápida -->
+          <div class="lg:col-span-4">
+            <label for="filter-search" class="block text-xs font-semibold text-slate-600 mb-1.5">Busca Rápida</label>
+            <div class="relative">
+              <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="text"
+                id="filter-search"
+                oninput="applyFilters()"
+                placeholder="Produtor, Fazenda, CPF/CNPJ ou Endereço..."
+                class="w-full pl-10 pr-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#166534] focus:bg-white transition"
+              />
+            </div>
+          </div>
+
+          <!-- Filtro por Município -->
+          <div class="lg:col-span-3">
+            <label for="filter-municipio" class="block text-xs font-semibold text-slate-600 mb-1.5">Município</label>
+            <select
+              id="filter-municipio"
+              onchange="syncMunicipioFilter(this.value)"
+              class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#166534] focus:bg-white transition cursor-pointer"
+            >
+              <option value="ALL">Todos os Municípios</option>
+            </select>
+          </div>
+
+          <!-- Filtro por Empresa de Regularização -->
+          <div class="lg:col-span-2">
+            <label for="filter-empresa" class="block text-xs font-semibold text-slate-600 mb-1.5">Empresa Regularização</label>
+            <select
+              id="filter-empresa"
+              onchange="syncEmpresaFilter(this.value)"
+              class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#166534] focus:bg-white transition cursor-pointer"
+            >
+              <option value="ALL">Todas as Empresas</option>
+              <option value="Belterra">Belterra</option>
+              <option value="JS Rural">JS Rural</option>
+            </select>
+          </div>
+
+          <!-- Filtro por Etapa CRM -->
+          <div class="lg:col-span-2">
+            <label for="filter-etapa" class="block text-xs font-semibold text-slate-600 mb-1.5">Etapa CRM</label>
+            <select
+              id="filter-etapa"
+              onchange="applyFilters()"
+              class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#166534] focus:bg-white transition cursor-pointer"
+            >
+              <option value="ALL">Todas as Etapas</option>
+              <option value="Termo Assinado">Termo Assinado</option>
+              <option value="Em Vistoria Técnica">Em Vistoria Técnica</option>
+              <option value="Regularização Ambiental">Regularização Ambiental</option>
+              <option value="Concluído">Concluído</option>
+            </select>
+          </div>
+
+          <!-- Botão Limpar Filtros -->
+          <div class="lg:col-span-1 flex justify-end">
+            <button
+              type="button"
+              onclick="resetAllFilters()"
+              class="w-full px-3 py-2.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl transition cursor-pointer"
+              title="Limpar todos os filtros"
+            >
+              Limpar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabela Responsiva de Produtores -->
+      <div class="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm overflow-hidden">
+        <div class="px-5 py-3.5 border-b border-slate-200 bg-slate-50/70 flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <h2 class="text-sm font-bold text-slate-800">Carteira de Produtores Rurais</h2>
+            <span id="table-results-badge" class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800">
+              56 registros
+            </span>
+          </div>
+          <p class="text-xs text-slate-500">
+            Altere a <strong>Etapa CRM</strong> diretamente na tabela ou clique no ícone do mapa para localizar a propriedade.
+          </p>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-100/80 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-600">
+                <th class="py-3.5 px-4">Produtor / CPF-CNPJ</th>
+                <th class="py-3.5 px-4">Fazenda</th>
+                <th class="py-3.5 px-4">Município</th>
+                <th class="py-3.5 px-4 text-right">Área (ha)</th>
+                <th class="py-3.5 px-4 text-right">Passivo PRODES</th>
+                <th class="py-3.5 px-4">Empresa Reg.</th>
+                <th class="py-3.5 px-4">Endereço / Vicinal</th>
+                <th class="py-3.5 px-4">Telefone</th>
+                <th class="py-3.5 px-4 text-center">Barter</th>
+                <th class="py-3.5 px-4">Etapa CRM</th>
+                <th class="py-3.5 px-4 text-center">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="crm-table-body" class="divide-y divide-slate-100 text-sm">
+              <!-- Preenchido via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Estado vazio quando filtro não retorna resultados -->
+        <div id="crm-empty-state" class="hidden py-14 px-4 text-center">
+          <div class="w-14 h-14 rounded-2xl bg-slate-100 text-slate-400 mx-auto flex items-center justify-center mb-3">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <h3 class="text-base font-bold text-slate-800">Nenhum produtor encontrado</h3>
+          <p class="text-xs sm:text-sm text-slate-500 mt-1 max-w-md mx-auto">
+            Não encontramos registros correspondentes aos filtros atuais. Tente limpar os filtros ou cadastrar um novo produtor.
+          </p>
+          <button
+            type="button"
+            onclick="resetAllFilters()"
+            class="mt-4 px-4 py-2 rounded-xl bg-[#166534] text-white text-xs font-semibold hover:bg-[#14532d] transition cursor-pointer"
+          >
+            Limpar Filtros
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         ABA 2: MAPA GEORREFERENCIADO
+         =================================================================== -->
+    <section id="view-mapa" class="hidden space-y-4 animate-fade-up">
+      <!-- Barra de Controles Dedicada do Mapa -->
+      <div class="bg-white rounded-2xl border border-[#e2e8f0] p-4 shadow-sm">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <!-- Filtros Geoespaciais -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
+            <!-- Filtro de Município no Mapa -->
+            <div>
+              <label for="map-filter-municipio" class="block text-xs font-semibold text-slate-600 mb-1">
+                Filtrar por Município (Zoom Automático)
+              </label>
+              <select
+                id="map-filter-municipio"
+                onchange="onMapMunicipioChange(this.value)"
+                class="w-full px-3.5 py-2 text-sm font-medium bg-emerald-50/70 border border-emerald-200 text-emerald-950 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#166534] cursor-pointer"
+              >
+                <option value="ALL">Todos os Municípios (56)</option>
+              </select>
+            </div>
+
+            <!-- Filtro de Empresa no Mapa -->
+            <div>
+              <label for="map-filter-empresa" class="block text-xs font-semibold text-slate-600 mb-1">
+                Empresa de Regularização
+              </label>
+              <select
+                id="map-filter-empresa"
+                onchange="onMapEmpresaChange(this.value)"
+                class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#166534] cursor-pointer"
+              >
+                <option value="ALL">Todas as Empresas</option>
+                <option value="Belterra">Belterra</option>
+                <option value="JS Rural">JS Rural</option>
+              </select>
+            </div>
+
+            <!-- Seletor de Camada Base (CartoDB Voyager vs Satélite) -->
+            <div>
+              <label for="map-basemap-select" class="block text-xs font-semibold text-slate-600 mb-1">
+                Camada Base do Mapa
+              </label>
+              <select
+                id="map-basemap-select"
+                onchange="switchBaseMap(this.value)"
+                class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#166534] cursor-pointer"
+              >
+                <option value="voyager">Mapa de Ruas (CartoDB Voyager)</option>
+                <option value="satellite">Imagem de Satélite (Esri World Imagery)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Legenda Visual e Botão Enquadrar Todos -->
+          <div class="flex flex-wrap items-center justify-between lg:justify-end gap-3 pt-2 lg:pt-4 border-t lg:border-t-0 border-slate-100">
+            <div class="flex items-center gap-4 bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200/80 text-xs font-semibold">
+              <span class="flex items-center gap-1.5 text-emerald-800">
+                <span class="w-3.5 h-3.5 rounded-full bg-[#059669] border-2 border-white shadow inline-block"></span>
+                Belterra
+              </span>
+              <span class="flex items-center gap-1.5 text-amber-800">
+                <span class="w-3.5 h-3.5 rounded-full bg-[#d97706] border-2 border-white shadow inline-block"></span>
+                JS Rural
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onclick="fitMapToVisibleMarkers()"
+              class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#14532d] hover:bg-[#166534] text-white text-xs font-semibold shadow-sm transition cursor-pointer"
+              title="Enquadrar todos os pontos filtrados na tela"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+              </svg>
+              Enquadrar Pontos
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Layout Dividido: Mapa Interativo à Esquerda + Painel Lateral de Detalhes à Direita -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <!-- Container do Mapa Leaflet (8 colunas em telas grandes) -->
+        <div class="lg:col-span-8 bg-white rounded-2xl border border-[#e2e8f0] shadow-sm overflow-hidden relative">
+          <div id="map-container"></div>
+          <!-- Contador flutuante no canto inferior esquerdo do mapa -->
+          <div class="absolute bottom-3 left-3 z-[400] bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-xl border border-slate-200 shadow-md text-xs font-semibold text-slate-700 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
+            <span id="map-visible-counter">56 propriedades georreferenciadas visíveis</span>
+          </div>
+        </div>
+
+        <!-- Painel Lateral Direito: Detalhes da Propriedade Selecionada (4 colunas) -->
+        <aside class="lg:col-span-4 bg-white rounded-2xl border border-[#e2e8f0] shadow-sm overflow-hidden">
+          <div class="bg-gradient-to-r from-[#14532d] to-[#166534] px-5 py-3.5 text-white flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <svg class="w-5 h-5 text-amber-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <h2 class="text-sm font-bold tracking-wide">Detalhes da Propriedade Selecionada</h2>
+            </div>
+          </div>
+
+          <!-- Conteúdo dinâmico do painel lateral -->
+          <div id="map-side-panel-content" class="p-5">
+            <!-- Estado inicial antes de clicar em um ponto -->
+            <div class="py-12 px-4 text-center space-y-3">
+              <div class="w-16 h-16 rounded-2xl bg-emerald-50 text-[#166534] mx-auto flex items-center justify-center border border-emerald-100">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+                </svg>
+              </div>
+              <h3 class="text-base font-bold text-slate-800">Selecione um ponto no mapa</h3>
+              <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
+                Clique sobre qualquer marcador georreferenciado no mapa para visualizar o popup completo e inspecionar os dados fundiários, passivo PRODES e contato do produtor.
+              </p>
+              <div class="pt-2">
+                <span class="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-400 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
+                  Dica: Use o filtro de Município acima para dar zoom direto na região desejada.
+                </span>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         ABA 3: INDICADORES POR MUNICÍPIO
+         =================================================================== -->
+    <section id="view-indicadores" class="hidden space-y-4 animate-fade-up">
+      <div class="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200 bg-slate-50/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h2 class="text-base font-bold text-slate-900">Consolidado Territorial por Município — Pará</h2>
+            <p class="text-xs text-slate-500 mt-0.5">
+              Distribuição de produtores, empresas executoras de regularização, área total e passivo ambiental PRODES (2008–2025).
+            </p>
+          </div>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-900">
+            Base Ativa Consolidada
+          </span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-100/80 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-600">
+                <th class="py-3.5 px-5">Município</th>
+                <th class="py-3.5 px-4">Produtores</th>
+                <th class="py-3.5 px-4 text-center">Belterra</th>
+                <th class="py-3.5 px-4 text-center">JS Rural</th>
+                <th class="py-3.5 px-4">Área Total (ha)</th>
+                <th class="py-3.5 px-4">Passivo PRODES (ha)</th>
+                <th class="py-3.5 px-4 text-right">Média Passivo / Prop.</th>
+                <th class="py-3.5 px-5 text-center">Georreferenciamento</th>
+              </tr>
+            </thead>
+            <tbody id="indicators-table-body" class="divide-y divide-slate-100 text-sm">
+              <!-- Preenchido via JavaScript -->
+            </tbody>
+            <tfoot id="indicators-table-foot" class="bg-slate-100/90 border-t-2 border-slate-300 font-bold text-slate-900 text-sm">
+              <!-- Totais preenchidos via JavaScript -->
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- =====================================================================
+       MODAL: CADASTRAR / EDITAR PRODUTOR
+       ===================================================================== -->
+  <div id="modal-producer" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-3xl overflow-hidden my-auto animate-fade-up">
+      <!-- Cabeçalho do Modal -->
+      <div class="bg-gradient-to-r from-[#14532d] to-[#166534] px-6 py-4 text-white flex items-center justify-between">
+        <div>
+          <h3 id="modal-producer-title" class="text-lg font-bold">Cadastrar Novo Produtor</h3>
+          <p class="text-xs text-emerald-100 mt-0.5">Preencha os dados cadastrais, fundiários e coordenadas geográficas</p>
+        </div>
+        <button type="button" onclick="closeProducerModal()" class="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Formulário -->
+      <form id="form-producer" onsubmit="saveProducerForm(event)" class="p-6 space-y-4 max-h-[82vh] overflow-y-auto">
+        <input type="hidden" id="field-id" />
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Nome do Produtor -->
+          <div class="sm:col-span-2">
+            <label for="field-produtor" class="block text-xs font-bold text-slate-700 mb-1">Nome Completo do Produtor *</label>
+            <input type="text" id="field-produtor" required placeholder="Ex: JOÃO DA SILVA SANTOS" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#166534] focus:outline-none" />
+          </div>
+
+          <!-- CPF / CNPJ -->
+          <div>
+            <label for="field-cpf" class="block text-xs font-bold text-slate-700 mb-1">CPF / CNPJ *</label>
+            <input type="text" id="field-cpf" required placeholder="000.000.000-00" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#166534] focus:outline-none" />
+          </div>
+
+          <!-- Telefone -->
+          <div>
+            <label for="field-telefone" class="block text-xs font-bold text-slate-700 mb-1">Telefone / WhatsApp</label>
+            <input type="text" id="field-telefone" placeholder="(93) 99100-0000" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#166534] focus:outline-none" />
+          </div>
+
+          <!-- Nome da Fazenda -->
+          <div>
+            <label for="field-fazenda" class="block text-xs font-bold text-slate-700 mb-1">Nome da Fazenda / Propriedade *</label>
+            <input type="text" id="field-fazenda" required placeholder="Ex: Sítio Boa Esperança" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#166534] focus:outline-none" />
+          </div>
+
+          <!-- Município -->
+          <div>
+            <label for="field-municipio" class="block text-xs font-bold text-slate-700 mb-1">Município *</label>
+            <input type="text" id="field-municipio" list="municipios-datalist" required placeholder="Selecione ou digite o município" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#166534] focus:outline-none" />
+            <datalist id="municipios-datalist"></datalist>
+          </div>
+
+          <!-- Área Total (ha) -->
+          <div>
+            <label for="field-area" class="block text-xs font-bold text-slate-700 mb-1">Área Total da Propriedade (ha) *</label>
+            <input type="number" step="0.01" min="0" id="field-area" required placeholder="0.00" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#166534] focus:outline-none" />
+          </div>
+
+          <!-- Passivo PRODES (ha) -->
+          <div>
+            <label for="field-prodes" class="block text-xs font-bold text-slate-700 mb-1">Passivo PRODES 2008–2025 (ha) *</label>
+            <input type="number" step="0.01" min="0" id="field-prodes" required placeholder="0.00" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#166534] focus:outline-none" />
+          </div>
+
+          <!-- Empresa de Regularização -->
+          <div>
+            <label for="field-empresa" class="block text-xs font-bold text-slate-700 mb-1">Empresa de Regularização *</label>
+            <select id="field-empresa" required class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#166534] focus:outline-none bg-white">
+              <option value="Belterra">Belterra</option>
+              <option value="JS Rural">JS Rural</option>
+            </select>
+          </div>
+
+          <!-- Termo Barter Assinado -->
+          <div>
+            <label for="field-termo" class="block text-xs font-bold text-slate-700 mb-1">Termo Barter Assinado *</label>
+            <select id="field-termo" required class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#166534] focus:outline-none bg-white">
+              <option value="Sim">Sim</option>
+              <option value="Não">Não</option>
+            </select>
+          </div>
+
+          <!-- Etapa CRM -->
+          <div class="sm:col-span-2">
+            <label for="field-status" class="block text-xs font-bold text-slate-700 mb-1">Etapa Atual no CRM *</label>
+            <select id="field-status" required class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#166534] focus:outline-none bg-white">
+              <option value="Termo Assinado">Termo Assinado</option>
+              <option value="Em Vistoria Técnica">Em Vistoria Técnica</option>
+              <option value="Regularização Ambiental">Regularização Ambiental</option>
+              <option value="Concluído">Concluído</option>
+            </select>
+          </div>
+
+          <!-- Endereço / Vicinal -->
+          <div class="sm:col-span-2">
+            <label for="field-endereco" class="block text-xs font-bold text-slate-700 mb-1">Endereço / Vicinal / Referência</label>
+            <input type="text" id="field-endereco" placeholder="Ex: BR 230 Km 170 Sul, Vicinal..." class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#166534] focus:outline-none" />
+          </div>
+
+          <!-- Coordenadas Geográficas -->
+          <div class="sm:col-span-2 bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-[#166534]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                </svg>
+                Georreferenciamento (Graus Decimais WGS84)
+              </span>
+              <button
+                type="button"
+                onclick="fillDefaultCoordsForMunicipio()"
+                class="text-[11px] font-semibold text-[#166534] hover:text-emerald-900 bg-emerald-100/80 hover:bg-emerald-200/80 px-2.5 py-1 rounded-lg transition cursor-pointer"
+              >
+                Usar coordenada base do município
+              </button>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label for="field-lat" class="block text-[11px] font-semibold text-slate-600 mb-1">Latitude *</label>
+                <input type="number" step="any" id="field-lat" required placeholder="-3.75000" class="w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#166534] focus:outline-none" />
+              </div>
+              <div>
+                <label for="field-lng" class="block text-[11px] font-semibold text-slate-600 mb-1">Longitude *</label>
+                <input type="number" step="any" id="field-lng" required placeholder="-53.70000" class="w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#166534] focus:outline-none" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Observações / Histórico -->
+          <div class="sm:col-span-2">
+            <label for="field-observacoes" class="block text-xs font-bold text-slate-700 mb-1">Observações / Histórico de Atendimento</label>
+            <textarea id="field-observacoes" rows="3" placeholder="Registre anotações técnicas, pendências documentais, histórico de visitas..." class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#166534] focus:outline-none"></textarea>
+          </div>
+        </div>
+
+        <!-- Rodapé do Modal -->
+        <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-3">
+          <button
+            type="button"
+            onclick="closeProducerModal()"
+            class="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-100 transition cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="px-5 py-2.5 rounded-xl bg-[#166534] hover:bg-[#14532d] text-white text-sm font-semibold shadow-md transition cursor-pointer"
+          >
+            Salvar Cadastro
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       MODAL DE CONFIRMAÇÃO CUSTOMIZADO (SUBSTITUI confirm() NATIVO)
+       ===================================================================== -->
+  <div id="modal-confirm" class="fixed inset-0 z-[1100] hidden items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-md overflow-hidden animate-fade-up">
+      <div class="p-6">
+        <div class="w-12 h-12 rounded-2xl bg-amber-100 text-[#d97706] flex items-center justify-center mb-4">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <h3 id="confirm-title" class="text-lg font-bold text-slate-900">Confirmar Ação</h3>
+        <p id="confirm-message" class="text-sm text-slate-600 mt-2 leading-relaxed">Deseja prosseguir com esta operação?</p>
+        <div class="mt-6 flex items-center justify-end gap-3">
+          <button
+            type="button"
+            onclick="closeConfirmModal()"
+            class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-100 transition cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            id="confirm-action-btn"
+            class="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-semibold shadow-sm transition cursor-pointer"
+          >
+            Confirmar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       MODAL: CONFIGURAR NUVEM (SINCRONIZAÇÃO CAIO & DEICE VIA GOOGLE SHEETS)
+       ===================================================================== -->
+  <div id="modal-cloud" class="fixed inset-0 z-[1050] hidden items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-2xl overflow-hidden my-auto animate-fade-up">
+      <div class="bg-gradient-to-r from-[#14532d] to-[#166534] px-6 py-4 text-white flex items-center justify-between">
+        <div>
+          <h3 class="text-lg font-bold">Sincronização em Tempo Real — Caio & Deice</h3>
+          <p class="text-xs text-emerald-100 mt-0.5">Conecte sua Planilha Google (Apps Script) para atualização automática a cada 5 segundos</p>
+        </div>
+        <button type="button" onclick="closeCloudModal()" class="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <form onsubmit="saveCloudConfig(event)" class="p-6 space-y-5 max-h-[82vh] overflow-y-auto">
+        <!-- URL do Google Apps Script -->
+        <div>
+          <label for="cloud-api-url-input" class="block text-xs font-bold text-slate-700 mb-1">
+            URL do App da Web (Google Apps Script terminada em /exec)
+          </label>
+          <input
+            type="url"
+            id="cloud-api-url-input"
+            oninput="updateDeiceShareLinkPreview()"
+            placeholder="https://script.google.com/macros/s/AKfycb.../exec"
+            class="w-full px-3.5 py-2.5 text-sm font-mono bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#166534] focus:bg-white focus:outline-none"
+          />
+          <p class="text-[11px] text-slate-500 mt-1">
+            Sempre que você ou a Deice editarem um produtor, alterarem uma etapa ou cadastrarem um novo registro, a mudança aparecerá na tela do outro em até 5 segundos.
+          </p>
+        </div>
+
+        <!-- Link Direto Pré-Configurado para Compartilhar com a Deice -->
+        <div class="bg-emerald-50/80 border border-emerald-200 rounded-xl p-4 space-y-2.5">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+              Link Direto Pré-Configurado para Enviar à Deice
+            </span>
+            <button
+              type="button"
+              onclick="copyShareLinkForDeice()"
+              class="px-3 py-1.5 rounded-lg bg-[#166534] hover:bg-[#14532d] text-white text-xs font-bold shadow-xs transition cursor-pointer"
+            >
+              Copiar Link da Deice
+            </button>
+          </div>
+          <input
+            type="text"
+            id="deice-share-link-input"
+            readonly
+            class="w-full px-3 py-2 text-xs font-mono bg-white border border-emerald-200 rounded-lg text-slate-700 select-all"
+          />
+          <p class="text-[11px] text-emerald-800">
+            Ao abrir este link no GitHub Pages, o navegador da Deice já configura a conexão automaticamente e marca o perfil dela como <strong>Deice</strong>.
+          </p>
+        </div>
+
+        <!-- Código do Google Apps Script pronto para copiar -->
+        <details class="bg-slate-50 border border-slate-200 rounded-xl p-3.5">
+          <summary class="text-xs font-bold text-slate-700 cursor-pointer select-none flex items-center justify-between">
+            <span>Ver código do Google Apps Script (colar na Planilha Google)</span>
+            <span class="text-[11px] font-normal text-slate-500">Clique para expandir</span>
+          </summary>
+          <div class="mt-3 space-y-2">
+            <div class="flex justify-end">
+              <button
+                type="button"
+                onclick="copyAppsScriptCode()"
+                class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-[11px] font-semibold transition cursor-pointer"
+              >
+                Copiar Código Apps Script
+              </button>
+            </div>
+            <pre id="apps-script-snippet" class="text-[11px] font-mono bg-slate-900 text-emerald-300 p-3 rounded-xl overflow-x-auto leading-relaxed">function doGet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('Produtores') || ss.getSheets()[0];
+  const rows = sheet.getDataRange().getValues();
+  if (rows.length &lt; 2) {
+    return ContentService.createTextOutput(JSON.stringify([]))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  const headers = rows.shift();
+  const data = rows.filter(r =&gt; r[0] !== '').map(r =&gt; {
+    const obj = {};
+    headers.forEach((h, i) =&gt; obj[h] = r[i]);
+    return obj;
+  });
+  return ContentService.createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('Produtores') || ss.getSheets()[0];
+  const payload = JSON.parse(e.postData.contents);
+  const headers = ['id','produtor','municipio','cpf_cnpj','fazenda','area_ha','passivo_prodes','empresa_regularizacao','endereco','telefone','termo_barter','status_crm','lat','lng','observacoes','updated_by','updated_at'];
+  if (sheet.getLastRow() === 0) sheet.appendRow(headers);
+
+  if (payload.action === 'sync_all' &amp;&amp; Array.isArray(payload.records)) {
+    sheet.clearContents();
+    sheet.appendRow(headers);
+    const matrix = payload.records.map(rec =&gt; headers.map(h =&gt; rec[h] ?? ''));
+    if (matrix.length &gt; 0) sheet.getRange(2, 1, matrix.length, headers.length).setValues(matrix);
+  } else if (payload.action === 'delete' &amp;&amp; payload.id !== undefined) {
+    const rows = sheet.getDataRange().getValues();
+    for (let i = rows.length - 1; i &gt;= 1; i--) {
+      if (String(rows[i][0]) === String(payload.id)) sheet.deleteRow(i + 1);
+    }
+  } else if (payload.record) {
+    const rec = payload.record;
+    const rows = sheet.getDataRange().getValues();
+    const rowIndex = rows.findIndex((r, idx) =&gt; idx &gt; 0 &amp;&amp; String(r[0]) === String(rec.id));
+    const rowValues = headers.map(h =&gt; rec[h] ?? '');
+    if (rowIndex &gt; 0) {
+      sheet.getRange(rowIndex + 1, 1, 1, headers.length).setValues([rowValues]);
+    } else {
+      sheet.appendRow(rowValues);
+    }
+  }
+  return ContentService.createTextOutput(JSON.stringify({ ok: true, timestamp: new Date().toISOString() }))
+    .setMimeType(ContentService.MimeType.JSON);
+}</pre>
+          </div>
+        </details>
+
+        <div class="pt-3 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+          <button
+            type="button"
+            onclick="disconnectCloud()"
+            class="px-3.5 py-2 rounded-xl text-xs font-semibold text-red-600 hover:bg-red-50 border border-red-200 transition cursor-pointer"
+          >
+            Desconectar Nuvem
+          </button>
+
+          <div class="flex items-center gap-2.5">
+            <button
+              type="button"
+              onclick="closeCloudModal()"
+              class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 text-xs sm:text-sm font-semibold hover:bg-slate-100 transition cursor-pointer"
+            >
+              Fechar
+            </button>
+            <button
+              type="submit"
+              class="px-5 py-2 rounded-xl bg-[#166534] hover:bg-[#14532d] text-white text-xs sm:text-sm font-semibold shadow-md transition cursor-pointer"
+            >
+              Salvar e Sincronizar Agora
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       NOTIFICAÇÕES FLUTUANTES (TOASTS)
+       ===================================================================== -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-[1200] flex flex-col gap-2.5 max-w-sm w-full pointer-events-none"></div>
+
+  <!-- =====================================================================
+       BIBLIOTECAS JAVASCRIPT EXTERNAS (LEAFLET & SHEETJS XLSX)
+       ===================================================================== -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+
+  <!-- =====================================================================
+       LÓGICA DA APLICAÇÃO CRM BARTER & REGULARIZAÇÃO — SENAR/PA
+       ===================================================================== -->
+  <script>
+    /**
+     * BASE DE DADOS INICIAL OBRIGATÓRIA (56 PRODUTORES - PLANILHA BARTER SENAR/PA)
+     */
+    const INITIAL_PRODUCERS = [
+      {"id": 1, "produtor": "ADILSON LOPES DE ASSIS", "municipio": "Vitória do Xingu", "cpf_cnpj": "699.264.332-00", "fazenda": "Fazenda dois irmãos", "area_ha": 122.78, "passivo_prodes": 14.6, "empresa_regularizacao": "JS Rural", "endereco": "Vc 27 Baixada PA Km 27", "telefone": "(93) 98807-2056", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -2.8819, "lng": -51.9839, "observacoes": ""},
+      {"id": 2, "produtor": "ADRIEL PINTO DE OLIVEIRA", "municipio": "Rurópolis", "cpf_cnpj": "115.532.067-03", "fazenda": "Sitio Paraiso", "area_ha": 52.07, "passivo_prodes": 7.64, "empresa_regularizacao": "Belterra", "endereco": "Vc cachoeira DA1530 vila nossa senhora Aparecida", "telefone": "(93) 99207-8159", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -4.07081, "lng": -54.94088, "observacoes": ""},
+      {"id": 3, "produtor": "ALCIRES MENDONCA NETO", "municipio": "Vitória do Xingu", "cpf_cnpj": "520.933.101-63", "fazenda": "SITIO BOA ESPERANCA", "area_ha": 89.31, "passivo_prodes": 23.78, "empresa_regularizacao": "JS Rural", "endereco": "Não informado", "telefone": "(93) 99653-4848", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -2.93071, "lng": -52.00462, "observacoes": ""},
+      {"id": 4, "produtor": "ALEX FERREIRA OLIVEIRA", "municipio": "Uruará", "cpf_cnpj": "040.162.752-70", "fazenda": "SITIO FERREIRA", "area_ha": 4.95, "passivo_prodes": 4.83, "empresa_regularizacao": "JS Rural", "endereco": "Km 135 2,5 km da faixa", "telefone": "(93) 99127-4334", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.66879, "lng": -53.69979, "observacoes": ""},
+      {"id": 5, "produtor": "ANANIAS MACEDO BORGES", "municipio": "Uruará", "cpf_cnpj": "651.498.072-49", "fazenda": "SITIO BOA VISTA", "area_ha": 13.6, "passivo_prodes": 12.68, "empresa_regularizacao": "Belterra", "endereco": "VC TRAVESSAO DO KM 195 SUL N179", "telefone": "(93) 99121-4082", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.77492, "lng": -53.80878, "observacoes": ""},
+      {"id": 6, "produtor": "Anderson Leonel Sterker Roberto", "municipio": "Medicilândia", "cpf_cnpj": "205.055.402-82", "fazenda": "Chácara 3 Corações", "area_ha": 13.04, "passivo_prodes": 3.51, "empresa_regularizacao": "Belterra", "endereco": "Vc Do Km 80 Sul N10", "telefone": "(93) 99172-6122", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.50452, "lng": -52.86781, "observacoes": ""},
+      {"id": 7, "produtor": "ANTONIO LUIZ FERREIRA LIMA", "municipio": "Rurópolis", "cpf_cnpj": "011.992.148-09", "fazenda": "Sitio Sao Luiz", "area_ha": 99.82, "passivo_prodes": 26.55, "empresa_regularizacao": "Belterra", "endereco": "Tv Cachoeira", "telefone": "(93) 99141-1532", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -4.06007, "lng": -54.92321, "observacoes": ""},
+      {"id": 8, "produtor": "APARECIDO DOS SANTOS MORAIS", "municipio": "Altamira", "cpf_cnpj": "293.299.222-87", "fazenda": "SITIO SAPUCAIA", "area_ha": 33.28, "passivo_prodes": 33.78, "empresa_regularizacao": "JS Rural", "endereco": "RAMAL DA FIRMA", "telefone": "(93) 99128-7918", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.24679, "lng": -52.22898, "observacoes": ""},
+      {"id": 9, "produtor": "CARLINDO COELHO DA SILVA", "municipio": "Uruará", "cpf_cnpj": "345.120.803-25", "fazenda": "CARLINDO COELHO DA SILVA", "area_ha": 60.38, "passivo_prodes": 3.54, "empresa_regularizacao": "Belterra", "endereco": "KM 160 SUL A 20 KM DA FAIXA", "telefone": "(93) 99180-7783", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.74127, "lng": -53.6796, "observacoes": ""},
+      {"id": 10, "produtor": "CELIO DA SILVA SOARES", "municipio": "Placas", "cpf_cnpj": "582.198.112-34", "fazenda": "CHACARA DEUS ME DEU", "area_ha": 12.99, "passivo_prodes": 6.46, "empresa_regularizacao": "JS Rural", "endereco": "Rodovia Transamazônica Br 230 Vicinal Do Angelo", "telefone": "(93) 98418-4842", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.84045, "lng": -54.28608, "observacoes": ""},
+      {"id": 11, "produtor": "CLAUDINEI TEIXEIRA DE SOUSA", "municipio": "Uruará", "cpf_cnpj": "011.007.682-62", "fazenda": "SITIO AGUA BOA", "area_ha": 47.25, "passivo_prodes": 20.27, "empresa_regularizacao": "Belterra", "endereco": "Br 230, Km 170 Sul Á 27 Km Da Faixa", "telefone": "(93) 99232-8271", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.78484, "lng": -53.7263, "observacoes": ""},
+      {"id": 12, "produtor": "CLAUDIO DA COSTA ALECRIM", "municipio": "Medicilândia", "cpf_cnpj": "588.899.302-68", "fazenda": "Sítio Pereira", "area_ha": 45.03, "passivo_prodes": 6.13, "empresa_regularizacao": "Belterra", "endereco": "Vc 130 Norte N3 Vila Do Km 130 Norte", "telefone": "(93) 99181-0938", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.3658, "lng": -52.87783, "observacoes": ""},
+      {"id": 13, "produtor": "Claudionir Zanela", "municipio": "Medicilândia", "cpf_cnpj": "229.199.371-20", "fazenda": "Sitio Boa Esperança", "area_ha": 87.37, "passivo_prodes": 6.88, "empresa_regularizacao": "Belterra", "endereco": "Não informado", "telefone": "(93) 99202-1653", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.47067, "lng": -52.93129, "observacoes": ""},
+      {"id": 14, "produtor": "Cleide Pereira Reis", "municipio": "Medicilândia", "cpf_cnpj": "641.991.692-53", "fazenda": "Chácara Paraíso", "area_ha": 3.17, "passivo_prodes": 3.13, "empresa_regularizacao": "Belterra", "endereco": "Rod Br 230 Trch Atm Itb Km 85 Nsn", "telefone": "(93) 99126-0217", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.45919, "lng": -52.82932, "observacoes": ""},
+      {"id": 15, "produtor": "CLEMENTINO DA COSTA", "municipio": "Uruará", "cpf_cnpj": "366.970.602-04", "fazenda": "ESTRELA DO ORIENTE", "area_ha": 198.85, "passivo_prodes": 7.64, "empresa_regularizacao": "JS Rural", "endereco": "Travessão 185 Sul em frente Bar do Luizão.", "telefone": "(93) 99219-1269", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.70248, "lng": -53.77889, "observacoes": ""},
+      {"id": 16, "produtor": "DANILSON CARLOS SOUSA PAIVA", "municipio": "Brasil Novo", "cpf_cnpj": "949.461.322-87", "fazenda": "Sítio Nazaré", "area_ha": 6.25, "passivo_prodes": 2.59, "empresa_regularizacao": "JS Rural", "endereco": "BR 230 KM 45 Vicinal 16 Ramal do Jacó 01 Sítio Nazaré CEP 68148000 Brasil Novo Pará", "telefone": "(93) 99110-7827", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.28619, "lng": -52.53961, "observacoes": ""},
+      {"id": 17, "produtor": "ERISMAR RODRIGUES DE ARAUJO", "municipio": "Placas", "cpf_cnpj": "253.092.771-53", "fazenda": "FAZENDA BAIXA FRIA", "area_ha": 102.91, "passivo_prodes": 8.49, "empresa_regularizacao": "JS Rural", "endereco": "Não informado", "telefone": "(93) 98414-9447", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.84445, "lng": -54.19031, "observacoes": ""},
+      {"id": 18, "produtor": "EUGENIO DE MOURA", "municipio": "Uruará", "cpf_cnpj": "004.555.562-10", "fazenda": "Sítio Novo Horizonte", "area_ha": 103.89, "passivo_prodes": 7.77, "empresa_regularizacao": "Belterra", "endereco": "Rd Pa 230 Vicinal 170 Sul Br", "telefone": "(93) 99235-3559", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.76018, "lng": -53.78586, "observacoes": ""},
+      {"id": 19, "produtor": "EVANDRO CESAR MOREIRA DA ROCHA", "municipio": "Uruará", "cpf_cnpj": "035.033.908-20", "fazenda": "FAZENDA SANTA TEREZINHA", "area_ha": 100.41, "passivo_prodes": 5.89, "empresa_regularizacao": "Belterra", "endereco": "BR 230 KM 180 NORTE A 2 5 KM DA NSN", "telefone": "(93) 99245-9248", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.71522, "lng": -53.69366, "observacoes": ""},
+      {"id": 20, "produtor": "FLAVIO SCHUNIG", "municipio": "Medicilândia", "cpf_cnpj": "019.654.662-14", "fazenda": "BOA VENTURA", "area_ha": 9.78, "passivo_prodes": 8.56, "empresa_regularizacao": "Belterra", "endereco": "Não informado", "telefone": "(93) 99233-1104", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.37318, "lng": -52.89228, "observacoes": ""},
+      {"id": 21, "produtor": "Francisco das Chagas de Araujo Lima", "municipio": "Uruará", "cpf_cnpj": "777.209.033-15", "fazenda": "Chácara Lima", "area_ha": 8.12, "passivo_prodes": 7.57, "empresa_regularizacao": "Belterra", "endereco": "Vc 140 Sul Sitio Novo N345", "telefone": "(93) 99220-0298", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.7814, "lng": -53.75292, "observacoes": ""},
+      {"id": 22, "produtor": "FRANCISCO PEREIRA SOARES", "municipio": "Placas", "cpf_cnpj": "944.056.032-00", "fazenda": "SITIO WF SOARES", "area_ha": 3.87, "passivo_prodes": 2.21, "empresa_regularizacao": "JS Rural", "endereco": "Não informado", "telefone": "(93) 98404-5502", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.86336, "lng": -54.18193, "observacoes": ""},
+      {"id": 23, "produtor": "FRANCISCO SILVA ALMEIDA", "municipio": "Medicilândia", "cpf_cnpj": "659.950.152-49", "fazenda": "SITIO BELA VISTA", "area_ha": 4.84, "passivo_prodes": 2.74, "empresa_regularizacao": "Belterra", "endereco": "BR 230 Vicinal do KM 75 Norte a 10 km da faixa Sítio Bela Vista CEP 68145000", "telefone": "(93) 99200-7920", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.37312, "lng": -52.92912, "observacoes": ""},
+      {"id": 24, "produtor": "GENI DE ARAUJO DA SILVA", "municipio": "Medicilândia", "cpf_cnpj": "676.438.412-68", "fazenda": "Fazenda Agromiro", "area_ha": 71.43, "passivo_prodes": 5.8, "empresa_regularizacao": "Belterra", "endereco": "BR 230 85 Sul 07 km da faixa Medicilândia PA", "telefone": "(93) 99137-5349", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.55061, "lng": -52.87551, "observacoes": ""},
+      {"id": 25, "produtor": "Genival Almeida Silva", "municipio": "Pacajá", "cpf_cnpj": "873.851.632-20", "fazenda": "Sitio alto bonito", "area_ha": 29.23, "passivo_prodes": 18.25, "empresa_regularizacao": "JS Rural", "endereco": "Vicinal Do Ajax", "telefone": "(91) 99289-0169", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.77386, "lng": -50.60151, "observacoes": ""},
+      {"id": 26, "produtor": "GILMAR FRANCISCO DE OLIVEIRA", "municipio": "Medicilândia", "cpf_cnpj": "223.034.642-34", "fazenda": "GILMAR FRANCISCO DE OLIVEIRA", "area_ha": 24.33, "passivo_prodes": 6.45, "empresa_regularizacao": "Belterra", "endereco": "RODOVIA TRANSAMAZÔNICA KM 85 SUL, LOTE 19, GLEBA 25", "telefone": "(93) 99118-5418", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.4987, "lng": -52.91272, "observacoes": ""},
+      {"id": 27, "produtor": "HELBER BEHN DE BRITO", "municipio": "Medicilândia", "cpf_cnpj": "696.752.792-49", "fazenda": "FAZENDA CANAA", "area_ha": 60.55, "passivo_prodes": 4.8, "empresa_regularizacao": "JS Rural", "endereco": "BR 230 travessão do zero 24 km da faixa", "telefone": "(93) 98404-3870", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.46162, "lng": -52.85531, "observacoes": ""},
+      {"id": 28, "produtor": "HELTON ROBERTO HAHN", "municipio": "Placas", "cpf_cnpj": "508.827.322-34", "fazenda": "SITIO PARA VERDAO", "area_ha": 81.78, "passivo_prodes": 36.98, "empresa_regularizacao": "JS Rural", "endereco": "Transamazônica km 245 Travessão da 60, 12km da BR.", "telefone": "(93) 98405-2555", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.8231, "lng": -54.23752, "observacoes": ""},
+      {"id": 29, "produtor": "HIANARA HOFMANN TREVISAN COELHO", "municipio": "Medicilândia", "cpf_cnpj": "005.578.602-29", "fazenda": "Sítio Água Boa", "area_ha": 100.13, "passivo_prodes": 10.74, "empresa_regularizacao": "Belterra", "endereco": "Rodovia Transamazonica, Km 80, Sul, Lt 1", "telefone": "(93) 99222-1408", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.5485, "lng": -52.90954, "observacoes": ""},
+      {"id": 30, "produtor": "IDERALDO LUIZ COSTA", "municipio": "Brasil Novo", "cpf_cnpj": "460.750.892-68", "fazenda": "Chacara Bariloche", "area_ha": 9.92, "passivo_prodes": 2.92, "empresa_regularizacao": "JS Rural", "endereco": "Rod Br 230 Km 48 Vicinal 16 Nsn", "telefone": "(93) 99240-6912", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.22743, "lng": -52.47179, "observacoes": ""},
+      {"id": 31, "produtor": "IZENILDA / BRUNO DE SOUZA AMORIM", "municipio": "Uruará", "cpf_cnpj": "917.881.102-34", "fazenda": "Sitio Amorim", "area_ha": 13.2, "passivo_prodes": 9.56, "empresa_regularizacao": "JS Rural", "endereco": "BR 230 KM 157 NORTE A 06 KM DA FAIXA", "telefone": "(93) 99217-0781", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.66583, "lng": -53.76108, "observacoes": ""},
+      {"id": 32, "produtor": "JANETE SANTOS PEREIRA", "municipio": "Placas", "cpf_cnpj": "393.101.322-72", "fazenda": "Boa esperança 2", "area_ha": 25.66, "passivo_prodes": 0.95, "empresa_regularizacao": "JS Rural", "endereco": "Km 192 da transamazônica", "telefone": "(93) 93300-4413", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.89942, "lng": -54.19859, "observacoes": ""},
+      {"id": 33, "produtor": "JOAO BORGES FREITAS", "municipio": "Itaituba", "cpf_cnpj": "057.023.802-15", "fazenda": "SITIO SÃO JOÃO", "area_ha": 84.73, "passivo_prodes": 2.15, "empresa_regularizacao": "JS Rural", "endereco": "Não informado", "telefone": "(93) 99221-4065", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -4.22781, "lng": -55.97531, "observacoes": ""},
+      {"id": 34, "produtor": "JONAS FELICIANO GOMES", "municipio": "Placas", "cpf_cnpj": "929.403.152-72", "fazenda": "CHACARA BOA SORTE", "area_ha": 9.21, "passivo_prodes": 9.18, "empresa_regularizacao": "JS Rural", "endereco": "VICINAL DO ANGELO", "telefone": "(93) 98410-4145", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.90566, "lng": -54.26682, "observacoes": ""},
+      {"id": 35, "produtor": "JOSE AQUILES PADILHA ROBERTO", "municipio": "Medicilândia", "cpf_cnpj": "971.002.342-04", "fazenda": "CHÁCARA CELESTIAL", "area_ha": 14.45, "passivo_prodes": 11.49, "empresa_regularizacao": "Belterra", "endereco": "VC DO KM 80 SUL", "telefone": "(93) 99119-9315", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.49712, "lng": -52.81615, "observacoes": ""},
+      {"id": 36, "produtor": "JOSE MILTON BATISTA", "municipio": "Brasil Novo", "cpf_cnpj": "572.186.412-53", "fazenda": "SITIO SHALON DE DEUS", "area_ha": 4.0, "passivo_prodes": 3.45, "empresa_regularizacao": "JS Rural", "endereco": "VC DEZESSEIS KM 03 N60", "telefone": "(93) 99116-3712", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.24305, "lng": -52.55338, "observacoes": ""},
+      {"id": 37, "produtor": "JOSE RAMAO SILVINO DA SILVA", "municipio": "Uruará", "cpf_cnpj": "655.410.732-00", "fazenda": "Fazenda Grotão", "area_ha": 37.16, "passivo_prodes": 5.75, "empresa_regularizacao": "JS Rural", "endereco": "Vicinal 135 Norte", "telefone": "(93) 92443-9559", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.7092, "lng": -53.73671, "observacoes": ""},
+      {"id": 38, "produtor": "JOSIMAR OLIVEIRA SILVA", "municipio": "Uruará", "cpf_cnpj": "651.236.202-06", "fazenda": "SITIO JS", "area_ha": 76.06, "passivo_prodes": 20.1, "empresa_regularizacao": "Belterra", "endereco": "VC 175 SUL, ZONA RURAL", "telefone": "(93) 99227-1543", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.7259, "lng": -53.70398, "observacoes": ""},
+      {"id": 39, "produtor": "JUCIMAO LABRE DA SILVA", "municipio": "Altamira", "cpf_cnpj": "463.068.032-20", "fazenda": "Sítio Maringá", "area_ha": 77.56, "passivo_prodes": 10.87, "empresa_regularizacao": "JS Rural", "endereco": "Transassurini km 23 Altamira PA", "telefone": "(93) 99196-0714", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.20894, "lng": -52.26714, "observacoes": ""},
+      {"id": 40, "produtor": "KATSUHIKO KAWAI", "municipio": "Medicilândia", "cpf_cnpj": "008.382.762-53", "fazenda": "SITIO SANTA JULIA", "area_ha": 109.71, "passivo_prodes": 5.35, "empresa_regularizacao": "Belterra", "endereco": "Rod Transamazonica Km 90 Vic Nsn", "telefone": "(93) 99153-9209", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.49022, "lng": -52.83074, "observacoes": ""},
+      {"id": 41, "produtor": "MANOEL ERALDO DE SOUZA", "municipio": "Placas", "cpf_cnpj": "283.479.789-72", "fazenda": "Lote 30 Gleba 60", "area_ha": 93.45, "passivo_prodes": 11.79, "empresa_regularizacao": "JS Rural", "endereco": "Vc Sessenta Nsn", "telefone": "(93) 98436-2644", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.8437, "lng": -54.22308, "observacoes": ""},
+      {"id": 42, "produtor": "MARIA DA PENHA TEIXEIRA", "municipio": "Medicilândia", "cpf_cnpj": "206.894.032-91", "fazenda": "SITIO SÃO BENTO", "area_ha": 80.21, "passivo_prodes": 33.22, "empresa_regularizacao": "Belterra", "endereco": "Vc 95 Sul", "telefone": "(93) 99114-9541", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.52242, "lng": -52.9086, "observacoes": ""},
+      {"id": 43, "produtor": "OLGA PALMIRA ESTEVAO MACHADO", "municipio": "Uruará", "cpf_cnpj": "007.473.082-76", "fazenda": "RECANTO DA NATUREZA", "area_ha": 139.15, "passivo_prodes": 6.82, "empresa_regularizacao": "Belterra", "endereco": "BR 230 km 175 sul 45 km da faixa", "telefone": "(93) 99181-8531", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.74924, "lng": -53.68964, "observacoes": ""},
+      {"id": 44, "produtor": "PEDRO / TIAGO MARTINS DE OLIVEIRA", "municipio": "Medicilândia", "cpf_cnpj": "022.253.702-73", "fazenda": "FAZENDA MARAVILHA", "area_ha": 70.45, "passivo_prodes": 23.19, "empresa_regularizacao": "Belterra", "endereco": "Travessão do Zero 35km da faixa", "telefone": "(93) 99122-0136", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.41826, "lng": -52.94318, "observacoes": ""},
+      {"id": 45, "produtor": "RAFAEL DA SILVA RODRIGUES", "municipio": "Uruará", "cpf_cnpj": "865.759.962-72", "fazenda": "SITIO BOA ESPERANCA", "area_ha": 28.97, "passivo_prodes": 12.21, "empresa_regularizacao": "Belterra", "endereco": "Não informado", "telefone": "(93) 99181-8494", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.78564, "lng": -53.71151, "observacoes": ""},
+      {"id": 46, "produtor": "RAFAEL DOS SANTOS OLIVEIRA", "municipio": "Uruará", "cpf_cnpj": "034.931.962-07", "fazenda": "SITIO OLIVEIRA", "area_ha": 101.87, "passivo_prodes": 5.75, "empresa_regularizacao": "Belterra", "endereco": "R Planalto Km 152 Vl Planalto Nsn", "telefone": "(93) 99103-3077", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.69404, "lng": -53.72748, "observacoes": ""},
+      {"id": 47, "produtor": "REGINALDO MONTEIRO DE LIMA", "municipio": "Placas", "cpf_cnpj": "924.169.772-53", "fazenda": "CHÁCARA MIRA SELVA", "area_ha": 6.0, "passivo_prodes": 12.12, "empresa_regularizacao": "JS Rural", "endereco": "Br 230 Km 268", "telefone": "(93) 98414-8062", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.88415, "lng": -54.25203, "observacoes": ""},
+      {"id": 48, "produtor": "REINALDO MOREIRA", "municipio": "Placas", "cpf_cnpj": "324.223.002-78", "fazenda": "Fazenda Bela Vista", "area_ha": 80.75, "passivo_prodes": 17.97, "empresa_regularizacao": "JS Rural", "endereco": "Vicinal da Miraselva, 4km da transamazônica.", "telefone": "(93) 98438-5047", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.88273, "lng": -54.17177, "observacoes": ""},
+      {"id": 49, "produtor": "SERGIO CEVIDANES FARIA", "municipio": "Rurópolis", "cpf_cnpj": "661.905.922-87", "fazenda": "CHACARA FAZPAF", "area_ha": 9.51, "passivo_prodes": 6.47, "empresa_regularizacao": "Belterra", "endereco": "Vicinal da cachoeira, km 21, Ruropolis/PA", "telefone": "(93) 99191-8852", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -4.04318, "lng": -54.94445, "observacoes": ""},
+      {"id": 50, "produtor": "SIDNEY GROSSKLAUS CARBONERA", "municipio": "Placas", "cpf_cnpj": "809.719.152-68", "fazenda": "CHACARA VALE DO CACAU", "area_ha": 11.29, "passivo_prodes": 9.73, "empresa_regularizacao": "JS Rural", "endereco": "Km 268 da Transamazônica", "telefone": "(93) 98400-6708", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.93968, "lng": -54.23391, "observacoes": ""},
+      {"id": 51, "produtor": "SILVIO FREITAS", "municipio": "Uruará", "cpf_cnpj": "326.703.542-20", "fazenda": "SITIO SOCIEDADE 1", "area_ha": 9.16, "passivo_prodes": 2.23, "empresa_regularizacao": "Belterra", "endereco": "Transamazônica km 135 norte", "telefone": "(93) 99214-0757", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.65772, "lng": -53.71652, "observacoes": ""},
+      {"id": 52, "produtor": "TARCIO LUIZ PARCIANELLO", "municipio": "Uruará", "cpf_cnpj": "611.148.122-34", "fazenda": "SITIO GAMELEIRA", "area_ha": 30.54, "passivo_prodes": 15.27, "empresa_regularizacao": "Belterra", "endereco": "BR 230 km150 Sul 5 km da faixa", "telefone": "(93) 99114-4677", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.75763, "lng": -53.77362, "observacoes": ""},
+      {"id": 53, "produtor": "VALMINE FIAFILO DEUCHER", "municipio": "Medicilândia", "cpf_cnpj": "665.182.022-20", "fazenda": "SITIO GATO PRETO", "area_ha": 80.53, "passivo_prodes": 43.36, "empresa_regularizacao": "Belterra", "endereco": "Br 230 km 130 norte a 24 km da faixa", "telefone": "(93) 99176-0388", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.43841, "lng": -52.85713, "observacoes": ""},
+      {"id": 54, "produtor": "VIVIANE OLIVEIRA SOARES", "municipio": "Altamira", "cpf_cnpj": "018.786.712-78", "fazenda": "Sítio Basã", "area_ha": 18.02, "passivo_prodes": 9.81, "empresa_regularizacao": "JS Rural", "endereco": "Assurini travessão Firma Ramal Picadinho Sítio Basã Altamira PA", "telefone": "(93) 99101-7262", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.14234, "lng": -52.20419, "observacoes": ""},
+      {"id": 55, "produtor": "WELISON DO NASCIMENTO", "municipio": "Uruará", "cpf_cnpj": "008.730.462-77", "fazenda": "SÍTIO RECANTO DA LU", "area_ha": 5.2, "passivo_prodes": 3.48, "empresa_regularizacao": "JS Rural", "endereco": "VICINAL DO KM 170 NORTE DA RODOVIA TRANSAMAZONICA", "telefone": "(93) 9133-2592", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.72421, "lng": -53.78813, "observacoes": ""},
+      {"id": 56, "produtor": "WELTON DE AQUINO", "municipio": "Pacajá", "cpf_cnpj": "027.016.552-50", "fazenda": "SITIO DO JUMENTAO", "area_ha": 26.51, "passivo_prodes": 8.04, "empresa_regularizacao": "JS Rural", "endereco": "VC NAZARE 101 VL NAZARÉ", "telefone": "(91) 99120-4390", "termo_barter": "Sim", "status_crm": "Termo Assinado", "lat": -3.83592, "lng": -50.61283, "observacoes": ""}
+    ];
+
+    /**
+     * Coordenadas de referência por município para auxiliar novos cadastros ou importações sem GPS
+     */
+    const MUNICIPALITY_CENTROIDS = {
+      "Altamira": { lat: -3.2033, lng: -52.2064 },
+      "Brasil Novo": { lat: -3.2611, lng: -52.5364 },
+      "Itaituba": { lat: -4.2761, lng: -55.9836 },
+      "Medicilândia": { lat: -3.4464, lng: -52.8894 },
+      "Pacajá": { lat: -3.8375, lng: -50.6358 },
+      "Placas": { lat: -3.8672, lng: -54.2133 },
+      "Rurópolis": { lat: -4.0958, lng: -54.9094 },
+      "Uruará": { lat: -3.7175, lng: -53.7369 },
+      "Vitória do Xingu": { lat: -2.8806, lng: -52.0089 }
+    };
+
+    const STORAGE_KEY = 'senar_pa_crm_barter_v1';
+    const CLOUD_URL_KEY = 'senar_pa_cloud_api_url_v1';
+    const USER_KEY = 'senar_pa_active_user_v1';
+
+    // Estado Global da Aplicação
+    let producers = [];
+    let currentTab = 'crm';
+    let activeUser = 'Caio';
+    let cloudApiUrl = '';
+    let autoSyncTimer = null;
+    let isSyncing = false;
+    let lastCloudFingerprint = '';
+    let filters = {
+      search: '',
+      municipio: 'ALL',
+      empresa: 'ALL',
+      etapa: 'ALL'
+    };
+
+    // Instâncias do Mapa Leaflet
+    let leafletMap = null;
+    let markersLayer = null;
+    let markersById = {};
+    let selectedProducerId = null;
+    let baseLayers = {};
+
+    // =========================================================================
+    // INICIALIZAÇÃO, SINCRONIZAÇÃO ONLINE (CAIO & DEICE) E PERSISTÊNCIA
+    // =========================================================================
+    document.addEventListener('DOMContentLoaded', () => {
+      initCloudAndUserFromParams();
+      loadProducersFromStorage();
+      populateMunicipioDropdowns();
+      refreshAllViews();
+      startAutoSyncLoop();
+
+      if (cloudApiUrl) {
+        syncNow(false);
+      }
+    });
+
+    function initCloudAndUserFromParams() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const urlApi = params.get('api');
+        const urlUser = params.get('user') || params.get('usuario');
+
+        if (urlApi && urlApi.trim().startsWith('http')) {
+          cloudApiUrl = urlApi.trim();
+          localStorage.setItem(CLOUD_URL_KEY, cloudApiUrl);
+        } else {
+          cloudApiUrl = localStorage.getItem(CLOUD_URL_KEY) || '';
+        }
+
+        if (urlUser && (urlUser.toLowerCase() === 'deice' || urlUser.toLowerCase() === 'caio')) {
+          activeUser = urlUser.charAt(0).toUpperCase() + urlUser.slice(1).toLowerCase();
+          localStorage.setItem(USER_KEY, activeUser);
+        } else {
+          activeUser = localStorage.getItem(USER_KEY) || 'Caio';
+        }
+      } catch (err) {
+        console.warn('Erro ao ler parâmetros de URL:', err);
+      }
+
+      updateUserSelectorUI();
+      updateCloudStatusUI(
+        cloudApiUrl ? 'connecting' : 'local',
+        cloudApiUrl ? 'Conectando à nuvem...' : 'Modo Local (Configure a nuvem para sincronizar com a Deice)'
+      );
+    }
+
+    function setActiveUser(userName) {
+      activeUser = userName;
+      try {
+        localStorage.setItem(USER_KEY, activeUser);
+      } catch (err) {
+        console.warn(err);
+      }
+      updateUserSelectorUI();
+      showToast(`Usuário ativo alterado para ${activeUser}.`, 'info');
+    }
+
+    function updateUserSelectorUI() {
+      const btnCaio = document.getElementById('user-btn-Caio');
+      const btnDeice = document.getElementById('user-btn-Deice');
+      if (!btnCaio || !btnDeice) return;
+
+      if (activeUser === 'Caio') {
+        btnCaio.className = 'px-2.5 py-1 rounded-md text-xs font-bold transition cursor-pointer bg-amber-500 text-slate-950 shadow-xs';
+        btnDeice.className = 'px-2.5 py-1 rounded-md text-xs font-bold transition cursor-pointer text-emerald-200 hover:text-white';
+      } else {
+        btnDeice.className = 'px-2.5 py-1 rounded-md text-xs font-bold transition cursor-pointer bg-amber-500 text-slate-950 shadow-xs';
+        btnCaio.className = 'px-2.5 py-1 rounded-md text-xs font-bold transition cursor-pointer text-emerald-200 hover:text-white';
+      }
+    }
+
+    function updateCloudStatusUI(state, text) {
+      const dot = document.getElementById('cloud-status-dot');
+      const label = document.getElementById('cloud-status-text');
+      const spinIcon = document.getElementById('sync-icon-spin');
+      if (!dot || !label) return;
+
+      label.textContent = text;
+      dot.className = 'w-2 h-2 rounded-full';
+
+      if (state === 'online') {
+        dot.classList.add('bg-emerald-400', 'animate-pulse');
+        if (spinIcon) spinIcon.classList.remove('animate-spin');
+      } else if (state === 'syncing' || state === 'connecting') {
+        dot.classList.add('bg-amber-300', 'animate-ping');
+        if (spinIcon) spinIcon.classList.add('animate-spin');
+      } else if (state === 'error') {
+        dot.classList.add('bg-red-400');
+        if (spinIcon) spinIcon.classList.remove('animate-spin');
+      } else {
+        dot.classList.add('bg-amber-400');
+        if (spinIcon) spinIcon.classList.remove('animate-spin');
+      }
+    }
+
+    function startAutoSyncLoop() {
+      if (autoSyncTimer) clearInterval(autoSyncTimer);
+      autoSyncTimer = setInterval(() => {
+        // Não interrompe enquanto um modal estiver aberto em edição
+        const isProducerModalOpen = !document.getElementById('modal-producer').classList.contains('hidden');
+        if (cloudApiUrl && !isSyncing && !isProducerModalOpen) {
+          pullFromCloud(false);
+        }
+      }, 5000);
+    }
+
+    async function syncNow(manualTrigger = false) {
+      if (!cloudApiUrl) {
+        if (manualTrigger) {
+          openCloudModal();
+          showToast('Cole a URL do Google Apps Script para ativar a sincronização online.', 'info');
+        }
+        return;
+      }
+      await pullFromCloud(manualTrigger);
+    }
+
+    async function pullFromCloud(showFeedback = false) {
+      if (!cloudApiUrl || isSyncing) return;
+      isSyncing = true;
+      updateCloudStatusUI('syncing', 'Sincronizando com a nuvem...');
+
+      try {
+        const response = await fetch(cloudApiUrl, {
+          method: 'GET',
+          redirect: 'follow'
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const remoteData = await response.json();
+
+        // Se a planilha na nuvem ainda estiver vazia, envia os 56 produtores locais automaticamente
+        if (Array.isArray(remoteData) && remoteData.length === 0 && producers.length > 0) {
+          isSyncing = false;
+          await pushAllToCloud();
+          return;
+        }
+
+        if (Array.isArray(remoteData) && remoteData.length > 0) {
+          const normalized = remoteData.map((r, idx) => ({
+            id: Number(r.id) || idx + 1,
+            produtor: String(r.produtor || '').trim(),
+            municipio: String(r.municipio || '').trim(),
+            cpf_cnpj: String(r.cpf_cnpj || '').trim(),
+            fazenda: String(r.fazenda || '').trim(),
+            area_ha: Number(String(r.area_ha || 0).replace(',', '.')) || 0,
+            passivo_prodes: Number(String(r.passivo_prodes || 0).replace(',', '.')) || 0,
+            empresa_regularizacao: String(r.empresa_regularizacao || 'Belterra').trim(),
+            endereco: String(r.endereco || 'Não informado').trim(),
+            telefone: String(r.telefone || '').trim(),
+            termo_barter: String(r.termo_barter || 'Sim').trim(),
+            status_crm: String(r.status_crm || 'Termo Assinado').trim(),
+            lat: Number(String(r.lat || -3.65).replace(',', '.')),
+            lng: Number(String(r.lng || -53.2).replace(',', '.')),
+            observacoes: String(r.observacoes || '').trim(),
+            updated_by: r.updated_by || '',
+            updated_at: r.updated_at || ''
+          }));
+
+          const newFingerprint = JSON.stringify(normalized);
+          if (newFingerprint !== lastCloudFingerprint) {
+            lastCloudFingerprint = newFingerprint;
+            producers = normalized;
+            saveProducersToStorage();
+            populateMunicipioDropdowns();
+            refreshAllViews();
+          }
+
+          const latestEditor = [...normalized]
+            .filter(item => item.updated_by)
+            .sort((a, b) => String(b.updated_at).localeCompare(String(a.updated_at)))[0];
+
+          const timeStr = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          const editorInfo = latestEditor ? ` • Última edição: ${latestEditor.updated_by}` : '';
+          updateCloudStatusUI('online', `Online (${timeStr})${editorInfo}`);
+
+          if (showFeedback) {
+            showToast('Dados sincronizados com sucesso entre Caio e Deice!', 'success');
+          }
+        }
+      } catch (err) {
+        console.error('Erro na sincronização GET:', err);
+        updateCloudStatusUI('error', 'Falha ao sincronizar — Verifique a URL da Nuvem');
+        if (showFeedback) {
+          showToast('Não foi possível conectar à planilha. Verifique a URL do Apps Script.', 'error');
+        }
+      } finally {
+        isSyncing = false;
+      }
+    }
+
+    async function pushRecordToCloud(record) {
+      if (!cloudApiUrl) return;
+      updateCloudStatusUI('syncing', `Enviando alteração de ${activeUser}...`);
+      try {
+        await fetch(cloudApiUrl, {
+          method: 'POST',
+          redirect: 'follow',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'upsert',
+            record: {
+              ...record,
+              updated_by: activeUser,
+              updated_at: new Date().toISOString()
+            }
+          })
+        });
+        lastCloudFingerprint = JSON.stringify(producers);
+        const timeStr = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        updateCloudStatusUI('online', `Online (${timeStr}) • Última edição: ${activeUser}`);
+      } catch (err) {
+        console.error('Erro ao enviar registro para nuvem:', err);
+        updateCloudStatusUI('error', 'Erro ao enviar alteração para nuvem');
+      }
+    }
+
+    async function deleteRecordFromCloud(id) {
+      if (!cloudApiUrl) return;
+      updateCloudStatusUI('syncing', `Removendo registro (${activeUser})...`);
+      try {
+        await fetch(cloudApiUrl, {
+          method: 'POST',
+          redirect: 'follow',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'delete',
+            id: id,
+            updated_by: activeUser
+          })
+        });
+        lastCloudFingerprint = JSON.stringify(producers);
+        const timeStr = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        updateCloudStatusUI('online', `Online (${timeStr}) • Última edição: ${activeUser}`);
+      } catch (err) {
+        console.error('Erro ao excluir na nuvem:', err);
+        updateCloudStatusUI('error', 'Erro ao sincronizar exclusão');
+      }
+    }
+
+    async function pushAllToCloud() {
+      if (!cloudApiUrl) return;
+      updateCloudStatusUI('syncing', 'Publicando base completa na nuvem...');
+      try {
+        const stamped = producers.map(p => ({
+          ...p,
+          updated_by: p.updated_by || activeUser,
+          updated_at: p.updated_at || new Date().toISOString()
+        }));
+        await fetch(cloudApiUrl, {
+          method: 'POST',
+          redirect: 'follow',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'sync_all',
+            records: stamped
+          })
+        });
+        lastCloudFingerprint = JSON.stringify(producers);
+        const timeStr = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        updateCloudStatusUI('online', `Online (${timeStr}) • Base sincronizada por ${activeUser}`);
+        showToast('Base completa sincronizada com a nuvem!', 'success');
+      } catch (err) {
+        console.error('Erro ao publicar base completa:', err);
+        updateCloudStatusUI('error', 'Falha ao enviar base para nuvem');
+      }
+    }
+
+    function openCloudModal() {
+      const modal = document.getElementById('modal-cloud');
+      const input = document.getElementById('cloud-api-url-input');
+      input.value = cloudApiUrl || '';
+      updateDeiceShareLinkPreview();
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeCloudModal() {
+      const modal = document.getElementById('modal-cloud');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function updateDeiceShareLinkPreview() {
+      const apiVal = document.getElementById('cloud-api-url-input').value.trim();
+      const baseUrl = window.location.origin + window.location.pathname;
+      const shareInput = document.getElementById('deice-share-link-input');
+      if (apiVal) {
+        shareInput.value = `${baseUrl}?api=${encodeURIComponent(apiVal)}&user=Deice`;
+      } else {
+        shareInput.value = `${baseUrl}?user=Deice`;
+      }
+    }
+
+    function saveCloudConfig(event) {
+      event.preventDefault();
+      const urlVal = document.getElementById('cloud-api-url-input').value.trim();
+      cloudApiUrl = urlVal;
+      try {
+        localStorage.setItem(CLOUD_URL_KEY, cloudApiUrl);
+      } catch (err) {
+        console.warn(err);
+      }
+      closeCloudModal();
+      if (cloudApiUrl) {
+        syncNow(true);
+      } else {
+        updateCloudStatusUI('local', 'Modo Local (Configure a nuvem para sincronizar com a Deice)');
+      }
+    }
+
+    function disconnectCloud() {
+      cloudApiUrl = '';
+      try {
+        localStorage.removeItem(CLOUD_URL_KEY);
+      } catch (err) {
+        console.warn(err);
+      }
+      document.getElementById('cloud-api-url-input').value = '';
+      updateDeiceShareLinkPreview();
+      updateCloudStatusUI('local', 'Modo Local (Nuvem desconectada)');
+      closeCloudModal();
+      showToast('Sincronização em nuvem desconectada.', 'info');
+    }
+
+    function copyTextFallback(text, successMsg) {
+      const tempArea = document.createElement('textarea');
+      tempArea.value = text;
+      tempArea.style.position = 'fixed';
+      tempArea.style.opacity = '0';
+      document.body.appendChild(tempArea);
+      tempArea.select();
+      try {
+        document.execCommand('copy');
+        showToast(successMsg, 'success');
+      } catch (err) {
+        showToast('Não foi possível copiar automaticamente. Selecione e copie o texto.', 'error');
+      } finally {
+        document.body.removeChild(tempArea);
+      }
+    }
+
+    function copyShareLinkForDeice() {
+      updateDeiceShareLinkPreview();
+      const link = document.getElementById('deice-share-link-input').value;
+      copyTextFallback(link, 'Link pré-configurado copiado! Envie para a Deice.');
+    }
+
+    function copyAppsScriptCode() {
+      const code = document.getElementById('apps-script-snippet').textContent;
+      copyTextFallback(code, 'Código do Google Apps Script copiado!');
+    }
+
+    function loadProducersFromStorage() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            producers = parsed;
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('Falha ao ler localStorage, usando base inicial:', err);
+      }
+      producers = JSON.parse(JSON.stringify(INITIAL_PRODUCERS));
+      saveProducersToStorage();
+    }
+
+    function saveProducersToStorage() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(producers));
+        const indicator = document.getElementById('storage-indicator');
+        if (indicator) {
+          indicator.textContent = `• Salvo às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+        }
+      } catch (err) {
+        console.warn('Erro ao salvar no localStorage:', err);
+      }
+    }
+
+    // =========================================================================
+    // UTILITÁRIOS DE FORMATAÇÃO E ESCAPE
+    // =========================================================================
+    function formatNumberBR(value, decimals = 2) {
+      const num = Number(value) || 0;
+      return num.toLocaleString('pt-BR', {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+      });
+    }
+
+    function escapeHTML(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function buildWhatsAppLink(phone) {
+      if (!phone) return null;
+      const digits = String(phone).replace(/\D/g, '');
+      if (digits.length < 8) return null;
+      const fullNumber = digits.startsWith('55') ? digits : `55${digits}`;
+      return `https://wa.me/${fullNumber}`;
+    }
+
+    function getStageBadgeClasses(stage) {
+      switch (stage) {
+        case 'Concluído':
+          return 'bg-emerald-100 text-emerald-900 border-emerald-300';
+        case 'Regularização Ambiental':
+          return 'bg-sky-100 text-sky-900 border-sky-300';
+        case 'Em Vistoria Técnica':
+          return 'bg-amber-100 text-amber-900 border-amber-300';
+        case 'Termo Assinado':
+        default:
+          return 'bg-teal-50 text-teal-900 border-teal-200';
+      }
+    }
+
+    function getEmpresaBadgeHTML(empresa) {
+      const isBelterra = String(empresa).toLowerCase().includes('belterra');
+      if (isBelterra) {
+        return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-900 border border-emerald-200">
+          <span class="w-2 h-2 rounded-full bg-emerald-600"></span>${escapeHTML(empresa)}
+        </span>`;
+      }
+      return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-900 border border-amber-200">
+        <span class="w-2 h-2 rounded-full bg-amber-600"></span>${escapeHTML(empresa)}
+      </span>`;
+    }
+
+    // =========================================================================
+    // FILTRAGEM E ATUALIZAÇÃO GLOBAL DE COMPONENTES
+    // =========================================================================
+    function getFilteredProducers() {
+      const q = filters.search.trim().toLowerCase();
+      return producers.filter(p => {
+        if (filters.municipio !== 'ALL' && p.municipio !== filters.municipio) return false;
+        if (filters.empresa !== 'ALL' && p.empresa_regularizacao !== filters.empresa) return false;
+        if (filters.etapa !== 'ALL' && p.status_crm !== filters.etapa) return false;
+
+        if (q) {
+          const haystack = [
+            p.produtor,
+            p.fazenda,
+            p.cpf_cnpj,
+            p.endereco,
+            p.municipio,
+            p.telefone
+          ].join(' ').toLowerCase();
+          if (!haystack.includes(q)) return false;
+        }
+        return true;
+      });
+    }
+
+    function populateMunicipioDropdowns() {
+      const counts = {};
+      producers.forEach(p => {
+        counts[p.municipio] = (counts[p.municipio] || 0) + 1;
+      });
+
+      const sortedMunicipios = Object.keys(counts).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+      // Dropdown da Aba CRM
+      const crmSelect = document.getElementById('filter-municipio');
+      const prevCrmVal = filters.municipio;
+      crmSelect.innerHTML = `<option value="ALL">Todos os Municípios (${producers.length})</option>`;
+      sortedMunicipios.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m;
+        opt.textContent = `${m} (${counts[m]})`;
+        crmSelect.appendChild(opt);
+      });
+      crmSelect.value = sortedMunicipios.includes(prevCrmVal) ? prevCrmVal : 'ALL';
+
+      // Dropdown da Aba Mapa
+      const mapSelect = document.getElementById('map-filter-municipio');
+      mapSelect.innerHTML = `<option value="ALL">Todos os Municípios (${producers.length})</option>`;
+      sortedMunicipios.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m;
+        opt.textContent = `${m} (${counts[m]} ${counts[m] === 1 ? 'ponto' : 'pontos'})`;
+        mapSelect.appendChild(opt);
+      });
+      mapSelect.value = sortedMunicipios.includes(prevCrmVal) ? prevCrmVal : 'ALL';
+
+      // Datalist do Modal de Cadastro
+      const datalist = document.getElementById('municipios-datalist');
+      const allKnown = Array.from(new Set([...sortedMunicipios, ...Object.keys(MUNICIPALITY_CENTROIDS)])).sort();
+      datalist.innerHTML = allKnown.map(m => `<option value="${escapeHTML(m)}">`).join('');
+    }
+
+    function syncMunicipioFilter(value) {
+      filters.municipio = value;
+      document.getElementById('filter-municipio').value = value;
+      document.getElementById('map-filter-municipio').value = value;
+      refreshAllViews();
+    }
+
+    function syncEmpresaFilter(value) {
+      filters.empresa = value;
+      document.getElementById('filter-empresa').value = value;
+      document.getElementById('map-filter-empresa').value = value;
+      refreshAllViews();
+    }
+
+    function applyFilters() {
+      filters.search = document.getElementById('filter-search').value;
+      filters.municipio = document.getElementById('filter-municipio').value;
+      filters.empresa = document.getElementById('filter-empresa').value;
+      filters.etapa = document.getElementById('filter-etapa').value;
+
+      document.getElementById('map-filter-municipio').value = filters.municipio;
+      document.getElementById('map-filter-empresa').value = filters.empresa;
+
+      refreshAllViews();
+    }
+
+    function resetAllFilters() {
+      filters = { search: '', municipio: 'ALL', empresa: 'ALL', etapa: 'ALL' };
+      document.getElementById('filter-search').value = '';
+      document.getElementById('filter-municipio').value = 'ALL';
+      document.getElementById('filter-empresa').value = 'ALL';
+      document.getElementById('filter-etapa').value = 'ALL';
+      document.getElementById('map-filter-municipio').value = 'ALL';
+      document.getElementById('map-filter-empresa').value = 'ALL';
+
+      refreshAllViews();
+      if (leafletMap) {
+        fitMapToVisibleMarkers();
+      }
+      showToast('Filtros limpos. Exibindo todos os produtores.', 'info');
+    }
+
+    function refreshAllViews() {
+      const filtered = getFilteredProducers();
+      updateKPIs(filtered);
+      renderCRMTable(filtered);
+      renderIndicatorsTable();
+      if (leafletMap) {
+        renderMapMarkers(filtered);
+      }
+      // Atualiza painel lateral do mapa se houver produtor selecionado
+      if (selectedProducerId !== null) {
+        const selectedProd = producers.find(p => p.id === selectedProducerId);
+        if (selectedProd) {
+          renderMapSidePanel(selectedProd);
+        } else {
+          selectedProducerId = null;
+          resetMapSidePanel();
+        }
+      }
+    }
+
+    // =========================================================================
+    // ATUALIZAÇÃO DOS KPIs DINÂMICOS
+    // =========================================================================
+    function updateKPIs(filteredList) {
+      const total = filteredList.length;
+      const uniqueMunicipios = new Set(filteredList.map(p => p.municipio)).size;
+      const totalArea = filteredList.reduce((acc, p) => acc + (Number(p.area_ha) || 0), 0);
+      const totalProdes = filteredList.reduce((acc, p) => acc + (Number(p.passivo_prodes) || 0), 0);
+
+      const belterraCount = filteredList.filter(p => String(p.empresa_regularizacao).toLowerCase().includes('belterra')).length;
+      const jsCount = filteredList.filter(p => String(p.empresa_regularizacao).toLowerCase().includes('js')).length;
+
+      const barterSigned = filteredList.filter(p => String(p.termo_barter).toLowerCase() === 'sim').length;
+      const barterPct = total > 0 ? ((barterSigned / total) * 100).toFixed(0) : 0;
+
+      const avgArea = total > 0 ? totalArea / total : 0;
+      const prodesPct = totalArea > 0 ? (totalProdes / totalArea) * 100 : 0;
+
+      document.getElementById('kpi-total-produtores').textContent = total;
+      document.getElementById('badge-tab-count').textContent = producers.length;
+      document.getElementById('kpi-municipios-count').textContent = `em ${uniqueMunicipios} ${uniqueMunicipios === 1 ? 'município' : 'municípios'}`;
+
+      const isFiltered = total !== producers.length;
+      document.getElementById('kpi-filtro-status').textContent = isFiltered
+        ? `Filtro ativo (${total} de ${producers.length} registros)`
+        : 'Exibindo base completa';
+
+      document.getElementById('kpi-area-total').textContent = formatNumberBR(totalArea, 2);
+      document.getElementById('kpi-area-media').textContent = `${formatNumberBR(avgArea, 2)} ha`;
+
+      document.getElementById('kpi-prodes-total').textContent = formatNumberBR(totalProdes, 2);
+      document.getElementById('kpi-prodes-pct').textContent = `${formatNumberBR(prodesPct, 2)}%`;
+
+      document.getElementById('kpi-belterra-count').textContent = belterraCount;
+      document.getElementById('kpi-js-count').textContent = jsCount;
+
+      const sumEmpresas = belterraCount + jsCount;
+      const belterraPct = sumEmpresas > 0 ? (belterraCount / sumEmpresas) * 100 : 50;
+      const jsPct = sumEmpresas > 0 ? (jsCount / sumEmpresas) * 100 : 50;
+      document.getElementById('kpi-bar-belterra').style.width = `${belterraPct}%`;
+      document.getElementById('kpi-bar-js').style.width = `${jsPct}%`;
+
+      document.getElementById('kpi-barter-count').textContent = barterSigned;
+      document.getElementById('kpi-barter-pct').textContent = `${barterPct}%`;
+    }
+
+    // =========================================================================
+    // NAVEGAÇÃO ENTRE ABAS
+    // =========================================================================
+    function switchTab(tabName) {
+      currentTab = tabName;
+
+      const tabs = ['crm', 'mapa', 'indicadores'];
+      tabs.forEach(t => {
+        const viewEl = document.getElementById(`view-${t}`);
+        const btnEl = document.getElementById(`tab-btn-${t}`);
+        if (t === tabName) {
+          viewEl.classList.remove('hidden');
+          btnEl.classList.add('bg-[#f8fafc]', 'text-[#14532d]', 'shadow-sm');
+          btnEl.classList.remove('text-emerald-100', 'hover:text-white', 'hover:bg-white/10');
+        } else {
+          viewEl.classList.add('hidden');
+          btnEl.classList.remove('bg-[#f8fafc]', 'text-[#14532d]', 'shadow-sm');
+          btnEl.classList.add('text-emerald-100', 'hover:text-white', 'hover:bg-white/10');
+        }
+      });
+
+      // Inicializa e corrige o tamanho do mapa Leaflet ao abrir a aba Mapa
+      if (tabName === 'mapa') {
+        initMapIfNeeded();
+        setTimeout(() => {
+          if (leafletMap) {
+            leafletMap.invalidateSize();
+            const filtered = getFilteredProducers();
+            renderMapMarkers(filtered);
+            if (selectedProducerId === null) {
+              fitMapToVisibleMarkers();
+            }
+          }
+        }, 120);
+      }
+    }
+
+    // =========================================================================
+    // ABA 1: RENDERIZAÇÃO DA TABELA CRM
+    // =========================================================================
+    function renderCRMTable(list) {
+      const tbody = document.getElementById('crm-table-body');
+      const emptyState = document.getElementById('crm-empty-state');
+      const badge = document.getElementById('table-results-badge');
+
+      badge.textContent = `${list.length} ${list.length === 1 ? 'registro' : 'registros'}`;
+
+      if (list.length === 0) {
+        tbody.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+
+      tbody.innerHTML = list.map(p => {
+        const waLink = buildWhatsAppLink(p.telefone);
+        const prodesRatio = p.area_ha > 0 ? Math.min(100, (p.passivo_prodes / p.area_ha) * 100) : 0;
+        const stageClasses = getStageBadgeClasses(p.status_crm);
+
+        return `
+          <tr class="hover:bg-emerald-50/40 transition group">
+            <!-- Produtor / CPF -->
+            <td class="py-3.5 px-4 align-top">
+              <div class="font-bold text-slate-900 text-xs sm:text-sm leading-snug">${escapeHTML(p.produtor)}</div>
+              <div class="text-xs text-slate-500 font-mono mt-0.5">${escapeHTML(p.cpf_cnpj)}</div>
+            </td>
+
+            <!-- Fazenda -->
+            <td class="py-3.5 px-4 align-top">
+              <div class="font-medium text-slate-800 text-xs sm:text-sm">${escapeHTML(p.fazenda)}</div>
+            </td>
+
+            <!-- Município -->
+            <td class="py-3.5 px-4 align-top whitespace-nowrap">
+              <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700">
+                ${escapeHTML(p.municipio)}
+              </span>
+            </td>
+
+            <!-- Área (ha) -->
+            <td class="py-3.5 px-4 align-top text-right whitespace-nowrap font-semibold text-slate-800">
+              ${formatNumberBR(p.area_ha, 2)} ha
+            </td>
+
+            <!-- Passivo PRODES -->
+            <td class="py-3.5 px-4 align-top text-right whitespace-nowrap">
+              <div class="font-bold text-[#d97706]">${formatNumberBR(p.passivo_prodes, 2)} ha</div>
+              <div class="text-[11px] text-slate-400">${formatNumberBR(prodesRatio, 1)}% da área</div>
+            </td>
+
+            <!-- Empresa Regularização -->
+            <td class="py-3.5 px-4 align-top whitespace-nowrap">
+              ${getEmpresaBadgeHTML(p.empresa_regularizacao)}
+            </td>
+
+            <!-- Endereço -->
+            <td class="py-3.5 px-4 align-top max-w-[230px]">
+              <p class="text-xs text-slate-600 line-clamp-2" title="${escapeHTML(p.endereco)}">
+                ${escapeHTML(p.endereco || 'Não informado')}
+              </p>
+            </td>
+
+            <!-- Telefone + WhatsApp -->
+            <td class="py-3.5 px-4 align-top whitespace-nowrap">
+              ${
+                waLink
+                  ? `<a href="${waLink}" target="_blank" rel="noopener noreferrer"
+                       class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition"
+                       title="Conversar no WhatsApp">
+                       <svg class="w-3.5 h-3.5 text-emerald-600" fill="currentColor" viewBox="0 0 24 24">
+                         <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.274.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.1.824z"/>
+                       </svg>
+                       ${escapeHTML(p.telefone)}
+                     </a>`
+                  : `<span class="text-xs text-slate-400">${escapeHTML(p.telefone || 'Sem telefone')}</span>`
+              }
+            </td>
+
+            <!-- Termo Barter -->
+            <td class="py-3.5 px-4 align-top text-center whitespace-nowrap">
+              ${
+                String(p.termo_barter).toLowerCase() === 'sim'
+                  ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">Sim</span>`
+                  : `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-800">Não</span>`
+              }
+            </td>
+
+            <!-- Etapa CRM (Editável diretamente na linha) -->
+            <td class="py-3.5 px-4 align-top whitespace-nowrap">
+              <select
+                onchange="updateProducerStage(${p.id}, this.value)"
+                aria-label="Etapa CRM de ${escapeHTML(p.produtor)}"
+                class="text-xs font-semibold px-2.5 py-1.5 rounded-xl border ${stageClasses} focus:outline-none focus:ring-2 focus:ring-[#166534] cursor-pointer transition"
+              >
+                <option value="Termo Assinado" ${p.status_crm === 'Termo Assinado' ? 'selected' : ''}>Termo Assinado</option>
+                <option value="Em Vistoria Técnica" ${p.status_crm === 'Em Vistoria Técnica' ? 'selected' : ''}>Em Vistoria Técnica</option>
+                <option value="Regularização Ambiental" ${p.status_crm === 'Regularização Ambiental' ? 'selected' : ''}>Regularização Ambiental</option>
+                <option value="Concluído" ${p.status_crm === 'Concluído' ? 'selected' : ''}>Concluído</option>
+              </select>
+            </td>
+
+            <!-- Ações -->
+            <td class="py-3.5 px-4 align-top text-center whitespace-nowrap">
+              <div class="inline-flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onclick="focusProducerOnMap(${p.id})"
+                  class="p-2 rounded-xl text-emerald-700 bg-emerald-50 hover:bg-emerald-600 hover:text-white transition cursor-pointer"
+                  title="Ver Propriedade no Mapa"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </button>
+
+                <button
+                  type="button"
+                  onclick="openProducerModal(${p.id})"
+                  class="p-2 rounded-xl text-amber-700 bg-amber-50 hover:bg-amber-600 hover:text-white transition cursor-pointer"
+                  title="Editar Cadastro"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+
+                <button
+                  type="button"
+                  onclick="confirmDeleteProducer(${p.id})"
+                  class="p-2 rounded-xl text-red-600 bg-red-50 hover:bg-red-600 hover:text-white transition cursor-pointer"
+                  title="Excluir Registro"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function updateProducerStage(id, newStage) {
+      const idx = producers.findIndex(p => p.id === id);
+      if (idx === -1) return;
+      producers[idx].status_crm = newStage;
+      producers[idx].updated_by = activeUser;
+      producers[idx].updated_at = new Date().toISOString();
+      saveProducersToStorage();
+      refreshAllViews();
+      pushRecordToCloud(producers[idx]);
+      showToast(`Etapa de ${producers[idx].produtor} atualizada para "${newStage}".`, 'success');
+    }
+
+    // =========================================================================
+    // ABA 2: MAPA GEORREFERENCIADO (LEAFLET.JS — CARTODB VOYAGER & SATÉLITE)
+    // =========================================================================
+    function initMapIfNeeded() {
+      if (leafletMap) return;
+
+      // Camadas Base: CartoDB Voyager (sem bloqueio de Referer) e Satélite Esri World Imagery
+      const voyagerLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        subdomains: 'abcd',
+        maxZoom: 20,
+        attribution: '&copy; OpenStreetMap contributors &copy; CARTO | SENAR/PA'
+      });
+
+      const satelliteLayer = L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        {
+          maxZoom: 19,
+          attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics'
+        }
+      );
+
+      baseLayers = {
+        voyager: voyagerLayer,
+        satellite: satelliteLayer
+      };
+
+      leafletMap = L.map('map-container', {
+        center: [-3.65, -53.2],
+        zoom: 7,
+        layers: [voyagerLayer],
+        zoomControl: true
+      });
+
+      markersLayer = L.layerGroup().addTo(leafletMap);
+    }
+
+    function switchBaseMap(layerKey) {
+      if (!leafletMap || !baseLayers[layerKey]) return;
+      Object.values(baseLayers).forEach(layer => {
+        if (leafletMap.hasLayer(layer)) {
+          leafletMap.removeLayer(layer);
+        }
+      });
+      baseLayers[layerKey].addTo(leafletMap);
+    }
+
+    function createCustomMarkerIcon(empresa, isSelected = false) {
+      const isBelterra = String(empresa).toLowerCase().includes('belterra');
+      const fill = isBelterra ? '#059669' : '#d97706';
+      const ring = isSelected ? 'pin-pulse' : '';
+      const size = isSelected ? 38 : 30;
+
+      const svgHTML = `
+        <div class="${ring}" style="width:${size}px;height:${size}px;display:flex;align-items:center;justify-content:center;border-radius:9999px;">
+          <svg width="${size}" height="${size}" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 3px 5px rgba(0,0,0,0.35));">
+            <path d="M18 2C10.82 2 5 7.82 5 15C5 24.75 18 34 18 34C18 34 31 24.75 31 15C31 7.82 25.18 2 18 2Z" fill="${fill}" stroke="#FFFFFF" stroke-width="2.5"/>
+            <circle cx="18" cy="14.5" r="5" fill="#FFFFFF"/>
+          </svg>
+        </div>
+      `;
+
+      return L.divIcon({
+        html: svgHTML,
+        className: 'custom-pin-wrapper',
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size],
+        popupAnchor: [0, -size + 4]
+      });
+    }
+
+    function buildMarkerPopupHTML(p) {
+      const isBelterra = String(p.empresa_regularizacao).toLowerCase().includes('belterra');
+      const headerBg = isBelterra ? 'bg-[#14532d]' : 'bg-[#b45309]';
+      const waLink = buildWhatsAppLink(p.telefone);
+      const prodesRatio = p.area_ha > 0 ? ((p.passivo_prodes / p.area_ha) * 100).toFixed(1) : '0.0';
+
+      return `
+        <div class="text-slate-800">
+          <!-- Cabeçalho colorido por Empresa -->
+          <div class="${headerBg} px-4 py-3 text-white">
+            <div class="text-[10px] font-bold uppercase tracking-wider text-white/80">
+              ${escapeHTML(p.empresa_regularizacao)} • ${escapeHTML(p.municipio)}/PA
+            </div>
+            <h4 class="font-bold text-sm leading-snug mt-0.5 pr-5">${escapeHTML(p.produtor)}</h4>
+            <p class="text-xs text-white/90 font-medium mt-0.5">${escapeHTML(p.fazenda)}</p>
+          </div>
+
+          <!-- Corpo com todas as informações do anexo -->
+          <div class="p-3.5 space-y-2.5 text-xs bg-white">
+            <div class="grid grid-cols-2 gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+              <div>
+                <span class="text-[10px] font-semibold uppercase text-slate-400 block">Área Total</span>
+                <span class="font-bold text-slate-900 text-sm">${formatNumberBR(p.area_ha, 2)} ha</span>
+              </div>
+              <div>
+                <span class="text-[10px] font-semibold uppercase text-slate-400 block">Passivo PRODES</span>
+                <span class="font-bold text-[#d97706] text-sm">${formatNumberBR(p.passivo_prodes, 2)} ha</span>
+                <span class="text-[10px] text-slate-500 block">(${prodesRatio}% da área)</span>
+              </div>
+            </div>
+
+            <div class="space-y-1.5 text-xs">
+              <div class="flex justify-between gap-2">
+                <span class="text-slate-400 font-medium">CPF/CNPJ:</span>
+                <span class="font-mono font-semibold text-slate-700">${escapeHTML(p.cpf_cnpj)}</span>
+              </div>
+              <div class="flex justify-between gap-2">
+                <span class="text-slate-400 font-medium">Termo Barter:</span>
+                <span class="font-bold ${String(p.termo_barter).toLowerCase() === 'sim' ? 'text-emerald-700' : 'text-red-600'}">
+                  ${escapeHTML(p.termo_barter)}
+                </span>
+              </div>
+              <div class="flex justify-between gap-2">
+                <span class="text-slate-400 font-medium">Etapa CRM:</span>
+                <span class="font-semibold text-slate-800">${escapeHTML(p.status_crm)}</span>
+              </div>
+              <div class="pt-1 border-t border-slate-100">
+                <span class="text-slate-400 font-medium block">Endereço / Vicinal:</span>
+                <span class="text-slate-700 font-medium">${escapeHTML(p.endereco || 'Não informado')}</span>
+              </div>
+              ${
+                p.observacoes
+                  ? `<div class="pt-1 border-t border-slate-100">
+                       <span class="text-slate-400 font-medium block">Observações:</span>
+                       <span class="text-slate-600 italic">${escapeHTML(p.observacoes)}</span>
+                     </div>`
+                  : ''
+              }
+            </div>
+
+            <!-- Botões de Ação dentro do Popup -->
+            <div class="pt-2 border-t border-slate-100 flex items-center gap-2">
+              ${
+                waLink
+                  ? `<a href="${waLink}" target="_blank" rel="noopener noreferrer"
+                       class="flex-1 inline-flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition">
+                       WhatsApp
+                     </a>`
+                  : ''
+              }
+              <button
+                type="button"
+                onclick="openProducerModal(${p.id})"
+                class="flex-1 inline-flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-semibold text-xs transition cursor-pointer"
+              >
+                Editar Cadastro
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderMapMarkers(list) {
+      if (!leafletMap || !markersLayer) return;
+
+      markersLayer.clearLayers();
+      markersById = {};
+
+      list.forEach(p => {
+        const lat = Number(p.lat);
+        const lng = Number(p.lng);
+        if (isNaN(lat) || isNaN(lng)) return;
+
+        const isSelected = p.id === selectedProducerId;
+        const marker = L.marker([lat, lng], {
+          icon: createCustomMarkerIcon(p.empresa_regularizacao, isSelected)
+        });
+
+        marker.bindPopup(buildMarkerPopupHTML(p), {
+          maxWidth: 340,
+          autoPanPadding: [30, 30]
+        });
+
+        // Ao clicar em um ponto no mapa: abre popup E atualiza painel lateral direito
+        marker.on('click', () => {
+          selectProducerOnMap(p.id, false);
+        });
+
+        marker.addTo(markersLayer);
+        markersById[p.id] = marker;
+      });
+
+      const counterEl = document.getElementById('map-visible-counter');
+      if (counterEl) {
+        counterEl.textContent = `${list.length} ${list.length === 1 ? 'propriedade georreferenciada visível' : 'propriedades georreferenciadas visíveis'}`;
+      }
+    }
+
+    function selectProducerOnMap(id, shouldOpenPopup = true) {
+      const producer = producers.find(p => p.id === id);
+      if (!producer) return;
+
+      selectedProducerId = id;
+
+      // Atualiza ícones para destacar o marcador selecionado
+      Object.entries(markersById).forEach(([markerId, marker]) => {
+        const prodObj = producers.find(item => item.id === Number(markerId));
+        if (prodObj) {
+          marker.setIcon(createCustomMarkerIcon(prodObj.empresa_regularizacao, Number(markerId) === id));
+        }
+      });
+
+      renderMapSidePanel(producer);
+
+      if (shouldOpenPopup && markersById[id] && leafletMap) {
+        const latLng = markersById[id].getLatLng();
+        leafletMap.setView(latLng, Math.max(leafletMap.getZoom(), 12), { animate: true });
+        markersById[id].openPopup();
+      }
+    }
+
+    function renderMapSidePanel(p) {
+      const container = document.getElementById('map-side-panel-content');
+      const waLink = buildWhatsAppLink(p.telefone);
+      const prodesPct = p.area_ha > 0 ? Math.min(100, (p.passivo_prodes / p.area_ha) * 100) : 0;
+      const stageClasses = getStageBadgeClasses(p.status_crm);
+
+      container.innerHTML = `
+        <div class="space-y-4 animate-fade-up">
+          <!-- Cabeçalho da Propriedade -->
+          <div class="border-b border-slate-100 pb-3.5">
+            <div class="flex items-center justify-between gap-2 mb-1.5">
+              ${getEmpresaBadgeHTML(p.empresa_regularizacao)}
+              <span class="text-xs font-bold px-2.5 py-0.5 rounded-full border ${stageClasses}">
+                ${escapeHTML(p.status_crm)}
+              </span>
+            </div>
+            <h3 class="text-base font-extrabold text-slate-900 leading-snug mt-2">${escapeHTML(p.produtor)}</h3>
+            <p class="text-sm font-semibold text-[#166534] mt-0.5">${escapeHTML(p.fazenda)}</p>
+            <p class="text-xs text-slate-500 font-mono mt-1">CPF/CNPJ: ${escapeHTML(p.cpf_cnpj)}</p>
+          </div>
+
+          <!-- Métricas Fundiárias e Ambientais -->
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/70">
+              <span class="text-[11px] font-semibold uppercase text-slate-400 block">Área Total</span>
+              <span class="text-lg font-extrabold text-slate-900">${formatNumberBR(p.area_ha, 2)} ha</span>
+            </div>
+            <div class="bg-amber-50/70 p-3 rounded-xl border border-amber-200/70">
+              <span class="text-[11px] font-semibold uppercase text-amber-700 block">Passivo PRODES</span>
+              <span class="text-lg font-extrabold text-[#d97706]">${formatNumberBR(p.passivo_prodes, 2)} ha</span>
+            </div>
+          </div>
+
+          <!-- Barra de Comprometimento Ambiental -->
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+            <div class="flex justify-between text-xs font-semibold mb-1.5">
+              <span class="text-slate-600">Proporção Passivo / Área Total</span>
+              <span class="text-amber-700">${formatNumberBR(prodesPct, 1)}%</span>
+            </div>
+            <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+              <div class="bg-[#d97706] h-full rounded-full" style="width: ${prodesPct}%"></div>
+            </div>
+          </div>
+
+          <!-- Detalhes Cadastrais -->
+          <dl class="space-y-2.5 text-xs">
+            <div class="flex justify-between py-1.5 border-b border-slate-100">
+              <dt class="text-slate-400 font-medium">Município / UF</dt>
+              <dd class="font-bold text-slate-800">${escapeHTML(p.municipio)} / PA</dd>
+            </div>
+            <div class="flex justify-between py-1.5 border-b border-slate-100">
+              <dt class="text-slate-400 font-medium">Termo Barter Assinado</dt>
+              <dd class="font-bold ${String(p.termo_barter).toLowerCase() === 'sim' ? 'text-emerald-700' : 'text-red-600'}">
+                ${escapeHTML(p.termo_barter)}
+              </dd>
+            </div>
+            <div class="flex justify-between py-1.5 border-b border-slate-100">
+              <dt class="text-slate-400 font-medium">Coordenadas GPS</dt>
+              <dd class="font-mono text-slate-700">${Number(p.lat).toFixed(5)}, ${Number(p.lng).toFixed(5)}</dd>
+            </div>
+            <div class="py-1.5 border-b border-slate-100">
+              <dt class="text-slate-400 font-medium mb-0.5">Endereço / Vicinal</dt>
+              <dd class="font-medium text-slate-800 leading-relaxed">${escapeHTML(p.endereco || 'Não informado')}</dd>
+            </div>
+            <div class="py-1">
+              <dt class="text-slate-400 font-medium mb-0.5">Observações / Histórico</dt>
+              <dd class="text-slate-600 italic leading-relaxed">
+                ${escapeHTML(p.observacoes || 'Nenhuma observação técnica registrada até o momento.')}
+              </dd>
+            </div>
+          </dl>
+
+          <!-- Botões de Ação -->
+          <div class="pt-2 flex flex-col sm:flex-row gap-2.5">
+            ${
+              waLink
+                ? `<a href="${waLink}" target="_blank" rel="noopener noreferrer"
+                     class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition">
+                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                       <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.274.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.1.824z"/>
+                     </svg>
+                     WhatsApp (${escapeHTML(p.telefone)})
+                   </a>`
+                : ''
+            }
+            <button
+              type="button"
+              onclick="openProducerModal(${p.id})"
+              class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#14532d] hover:bg-[#166534] text-white text-xs font-bold shadow-sm transition cursor-pointer"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Editar Cadastro
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function resetMapSidePanel() {
+      const container = document.getElementById('map-side-panel-content');
+      container.innerHTML = `
+        <div class="py-12 px-4 text-center space-y-3">
+          <div class="w-16 h-16 rounded-2xl bg-emerald-50 text-[#166534] mx-auto flex items-center justify-center border border-emerald-100">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+            </svg>
+          </div>
+          <h3 class="text-base font-bold text-slate-800">Selecione um ponto no mapa</h3>
+          <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
+            Clique sobre qualquer marcador georreferenciado no mapa para visualizar o popup completo e inspecionar os dados fundiários, passivo PRODES e contato do produtor.
+          </p>
+        </div>
+      `;
+    }
+
+    function onMapMunicipioChange(municipioValue) {
+      syncMunicipioFilter(municipioValue);
+      selectedProducerId = null;
+      resetMapSidePanel();
+      setTimeout(() => {
+        fitMapToVisibleMarkers();
+      }, 60);
+    }
+
+    function onMapEmpresaChange(empresaValue) {
+      syncEmpresaFilter(empresaValue);
+      setTimeout(() => {
+        fitMapToVisibleMarkers();
+      }, 60);
+    }
+
+    function fitMapToVisibleMarkers() {
+      if (!leafletMap || !markersLayer) return;
+      const layers = markersLayer.getLayers();
+      if (layers.length === 0) return;
+
+      const group = L.featureGroup(layers);
+      leafletMap.fitBounds(group.getBounds(), {
+        padding: [45, 45],
+        maxZoom: 13,
+        animate: true
+      });
+    }
+
+    /**
+     * Atalho vindo da Tabela CRM ou da Aba Indicadores para focar diretamente em um produtor no mapa
+     */
+    function focusProducerOnMap(producerId) {
+      const prod = producers.find(p => p.id === producerId);
+      if (!prod) return;
+
+      // Garante que os filtros não escondam o produtor escolhido
+      if (filters.municipio !== 'ALL' && filters.municipio !== prod.municipio) {
+        syncMunicipioFilter('ALL');
+      }
+      if (filters.empresa !== 'ALL' && filters.empresa !== prod.empresa_regularizacao) {
+        syncEmpresaFilter('ALL');
+      }
+      if (filters.etapa !== 'ALL' && filters.etapa !== prod.status_crm) {
+        filters.etapa = 'ALL';
+        document.getElementById('filter-etapa').value = 'ALL';
+      }
+      if (filters.search) {
+        filters.search = '';
+        document.getElementById('filter-search').value = '';
+      }
+
+      selectedProducerId = producerId;
+      switchTab('mapa');
+
+      setTimeout(() => {
+        if (leafletMap) {
+          leafletMap.invalidateSize();
+          renderMapMarkers(getFilteredProducers());
+          selectProducerOnMap(producerId, true);
+        }
+      }, 160);
+    }
+
+    function focusMunicipioOnMap(municipio) {
+      selectedProducerId = null;
+      resetMapSidePanel();
+      syncMunicipioFilter(municipio);
+      switchTab('mapa');
+
+      setTimeout(() => {
+        if (leafletMap) {
+          leafletMap.invalidateSize();
+          renderMapMarkers(getFilteredProducers());
+          fitMapToVisibleMarkers();
+        }
+      }, 160);
+    }
+
+    // =========================================================================
+    // ABA 3: INDICADORES CONSOLIDADOS POR MUNICÍPIO
+    // =========================================================================
+    function renderIndicatorsTable() {
+      const tbody = document.getElementById('indicators-table-body');
+      const tfoot = document.getElementById('indicators-table-foot');
+
+      const grouped = {};
+      producers.forEach(p => {
+        const m = p.municipio || 'Não Informado';
+        if (!grouped[m]) {
+          grouped[m] = {
+            municipio: m,
+            count: 0,
+            belterra: 0,
+            jsRural: 0,
+            areaTotal: 0,
+            prodesTotal: 0
+          };
+        }
+        grouped[m].count += 1;
+        if (String(p.empresa_regularizacao).toLowerCase().includes('belterra')) {
+          grouped[m].belterra += 1;
+        } else {
+          grouped[m].jsRural += 1;
+        }
+        grouped[m].areaTotal += Number(p.area_ha) || 0;
+        grouped[m].prodesTotal += Number(p.passivo_prodes) || 0;
+      });
+
+      const rows = Object.values(grouped).sort((a, b) => b.count - a.count || b.areaTotal - a.areaTotal);
+
+      const maxCount = Math.max(...rows.map(r => r.count), 1);
+      const maxArea = Math.max(...rows.map(r => r.areaTotal), 1);
+      const maxProdes = Math.max(...rows.map(r => r.prodesTotal), 1);
+
+      let sumCount = 0;
+      let sumBelterra = 0;
+      let sumJs = 0;
+      let sumArea = 0;
+      let sumProdes = 0;
+
+      tbody.innerHTML = rows.map(r => {
+        sumCount += r.count;
+        sumBelterra += r.belterra;
+        sumJs += r.jsRural;
+        sumArea += r.areaTotal;
+        sumProdes += r.prodesTotal;
+
+        const avgProdes = r.count > 0 ? r.prodesTotal / r.count : 0;
+        const countPct = (r.count / maxCount) * 100;
+        const areaPct = (r.areaTotal / maxArea) * 100;
+        const prodesPct = (r.prodesTotal / maxProdes) * 100;
+
+        return `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="py-3.5 px-5 font-bold text-slate-900">
+              ${escapeHTML(r.municipio)}
+            </td>
+
+            <!-- Quantidade de Produtores com barra proporcional -->
+            <td class="py-3.5 px-4">
+              <div class="flex items-center gap-2.5">
+                <span class="font-extrabold text-slate-800 w-6 text-right">${r.count}</span>
+                <div class="flex-1 max-w-[110px] h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div class="bg-[#166534] h-full rounded-full" style="width: ${countPct}%"></div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Belterra -->
+            <td class="py-3.5 px-4 text-center">
+              <span class="inline-flex items-center justify-center min-w-[28px] px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-900">
+                ${r.belterra}
+              </span>
+            </td>
+
+            <!-- JS Rural -->
+            <td class="py-3.5 px-4 text-center">
+              <span class="inline-flex items-center justify-center min-w-[28px] px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900">
+                ${r.jsRural}
+              </span>
+            </td>
+
+            <!-- Área Total com barra proporcional -->
+            <td class="py-3.5 px-4">
+              <div class="font-semibold text-slate-800">${formatNumberBR(r.areaTotal, 2)} ha</div>
+              <div class="w-full max-w-[140px] h-1.5 bg-slate-100 rounded-full overflow-hidden mt-1">
+                <div class="bg-teal-600 h-full rounded-full" style="width: ${areaPct}%"></div>
+              </div>
+            </td>
+
+            <!-- Passivo PRODES Total com barra proporcional -->
+            <td class="py-3.5 px-4">
+              <div class="font-bold text-[#d97706]">${formatNumberBR(r.prodesTotal, 2)} ha</div>
+              <div class="w-full max-w-[140px] h-1.5 bg-slate-100 rounded-full overflow-hidden mt-1">
+                <div class="bg-[#d97706] h-full rounded-full" style="width: ${prodesPct}%"></div>
+              </div>
+            </td>
+
+            <!-- Média de Passivo por Propriedade -->
+            <td class="py-3.5 px-4 text-right font-medium text-slate-700">
+              ${formatNumberBR(avgProdes, 2)} ha
+            </td>
+
+            <!-- Botão Ver no Mapa -->
+            <td class="py-3.5 px-5 text-center">
+              <button
+                type="button"
+                onclick="focusMunicipioOnMap('${escapeHTML(r.municipio)}')"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-50 hover:bg-[#166534] text-[#166534] hover:text-white border border-emerald-200 transition cursor-pointer"
+              >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                </svg>
+                Ver no Mapa
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      const globalAvgProdes = sumCount > 0 ? sumProdes / sumCount : 0;
+      tfoot.innerHTML = `
+        <tr>
+          <td class="py-3.5 px-5">TOTAL GERAL (${rows.length} Municípios)</td>
+          <td class="py-3.5 px-4">${sumCount} produtores</td>
+          <td class="py-3.5 px-4 text-center text-emerald-800">${sumBelterra}</td>
+          <td class="py-3.5 px-4 text-center text-amber-800">${sumJs}</td>
+          <td class="py-3.5 px-4">${formatNumberBR(sumArea, 2)} ha</td>
+          <td class="py-3.5 px-4 text-[#d97706]">${formatNumberBR(sumProdes, 2)} ha</td>
+          <td class="py-3.5 px-4 text-right">${formatNumberBR(globalAvgProdes, 2)} ha</td>
+          <td class="py-3.5 px-5 text-center text-xs font-normal text-slate-500">100% Georreferenciado</td>
+        </tr>
+      `;
+    }
+
+    // =========================================================================
+    // MODAL DE CADASTRO / EDIÇÃO DE PRODUTOR
+    // =========================================================================
+    function openProducerModal(producerId = null) {
+      const modal = document.getElementById('modal-producer');
+      const titleEl = document.getElementById('modal-producer-title');
+      const form = document.getElementById('form-producer');
+
+      form.reset();
+
+      if (producerId !== null) {
+        const p = producers.find(item => item.id === producerId);
+        if (!p) return;
+
+        titleEl.textContent = 'Editar Cadastro do Produtor';
+        document.getElementById('field-id').value = p.id;
+        document.getElementById('field-produtor').value = p.produtor;
+        document.getElementById('field-cpf').value = p.cpf_cnpj;
+        document.getElementById('field-telefone').value = p.telefone || '';
+        document.getElementById('field-fazenda').value = p.fazenda;
+        document.getElementById('field-municipio').value = p.municipio;
+        document.getElementById('field-area').value = p.area_ha;
+        document.getElementById('field-prodes').value = p.passivo_prodes;
+        document.getElementById('field-empresa').value = p.empresa_regularizacao;
+        document.getElementById('field-termo').value = p.termo_barter || 'Sim';
+        document.getElementById('field-status').value = p.status_crm || 'Termo Assinado';
+        document.getElementById('field-endereco').value = p.endereco || '';
+        document.getElementById('field-lat').value = p.lat;
+        document.getElementById('field-lng').value = p.lng;
+        document.getElementById('field-observacoes').value = p.observacoes || '';
+      } else {
+        titleEl.textContent = 'Cadastrar Novo Produtor';
+        document.getElementById('field-id').value = '';
+        document.getElementById('field-empresa').value = 'Belterra';
+        document.getElementById('field-termo').value = 'Sim';
+        document.getElementById('field-status').value = 'Termo Assinado';
+      }
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeProducerModal() {
+      const modal = document.getElementById('modal-producer');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function fillDefaultCoordsForMunicipio() {
+      const municipioInput = document.getElementById('field-municipio').value.trim();
+      const matchedKey = Object.keys(MUNICIPALITY_CENTROIDS).find(
+        k => k.toLowerCase() === municipioInput.toLowerCase()
+      );
+
+      if (matchedKey) {
+        const base = MUNICIPALITY_CENTROIDS[matchedKey];
+        // Pequeno deslocamento aleatório para não sobrepor pinos exatamente no mesmo pixel
+        const jitterLat = (Math.random() - 0.5) * 0.03;
+        const jitterLng = (Math.random() - 0.5) * 0.03;
+        document.getElementById('field-lat').value = (base.lat + jitterLat).toFixed(5);
+        document.getElementById('field-lng').value = (base.lng + jitterLng).toFixed(5);
+        showToast(`Coordenadas base de ${matchedKey} preenchidas.`, 'info');
+      } else {
+        document.getElementById('field-lat').value = '-3.65000';
+        document.getElementById('field-lng').value = '-53.20000';
+        showToast('Município não mapeado previamente; coordenadas regionais aplicadas.', 'info');
+      }
+    }
+
+    function saveProducerForm(event) {
+      event.preventDefault();
+
+      const idRaw = document.getElementById('field-id').value;
+      const payload = {
+        produtor: document.getElementById('field-produtor').value.trim(),
+        cpf_cnpj: document.getElementById('field-cpf').value.trim(),
+        telefone: document.getElementById('field-telefone').value.trim(),
+        fazenda: document.getElementById('field-fazenda').value.trim(),
+        municipio: document.getElementById('field-municipio').value.trim(),
+        area_ha: parseFloat(document.getElementById('field-area').value) || 0,
+        passivo_prodes: parseFloat(document.getElementById('field-prodes').value) || 0,
+        empresa_regularizacao: document.getElementById('field-empresa').value,
+        termo_barter: document.getElementById('field-termo').value,
+        status_crm: document.getElementById('field-status').value,
+        endereco: document.getElementById('field-endereco').value.trim() || 'Não informado',
+        lat: parseFloat(document.getElementById('field-lat').value),
+        lng: parseFloat(document.getElementById('field-lng').value),
+        observacoes: document.getElementById('field-observacoes').value.trim()
+      };
+
+      if (idRaw) {
+        const idNum = Number(idRaw);
+        const idx = producers.findIndex(p => p.id === idNum);
+        if (idx !== -1) {
+          producers[idx] = {
+            ...producers[idx],
+            ...payload,
+            updated_by: activeUser,
+            updated_at: new Date().toISOString()
+          };
+          saveProducersToStorage();
+          populateMunicipioDropdowns();
+          refreshAllViews();
+          closeProducerModal();
+          pushRecordToCloud(producers[idx]);
+          showToast(`Cadastro de "${payload.produtor}" atualizado com sucesso!`, 'success');
+          return;
+        }
+      } else {
+        const nextId = producers.length > 0 ? Math.max(...producers.map(p => p.id)) + 1 : 1;
+        const newRecord = {
+          id: nextId,
+          ...payload,
+          updated_by: activeUser,
+          updated_at: new Date().toISOString()
+        };
+        producers.unshift(newRecord);
+        saveProducersToStorage();
+        populateMunicipioDropdowns();
+        refreshAllViews();
+        closeProducerModal();
+        pushRecordToCloud(newRecord);
+        showToast(`Novo produtor "${payload.produtor}" adicionado ao CRM!`, 'success');
+      }
+    }
+
+    // =========================================================================
+    // EXCLUSÃO E RESTAURAÇÃO COM MODAL CUSTOMIZADO (SEM confirm() NATIVO)
+    // =========================================================================
+    function openConfirmModal({ title, message, confirmText = 'Confirmar', onConfirm }) {
+      const modal = document.getElementById('modal-confirm');
+      document.getElementById('confirm-title').textContent = title;
+      document.getElementById('confirm-message').textContent = message;
+
+      const btn = document.getElementById('confirm-action-btn');
+      btn.textContent = confirmText;
+      btn.onclick = () => {
+        closeConfirmModal();
+        if (typeof onConfirm === 'function') onConfirm();
+      };
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeConfirmModal() {
+      const modal = document.getElementById('modal-confirm');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function confirmDeleteProducer(id) {
+      const prod = producers.find(p => p.id === id);
+      if (!prod) return;
+
+      openConfirmModal({
+        title: 'Excluir Produtor do CRM',
+        message: `Tem certeza que deseja remover "${prod.produtor}" (${prod.fazenda} - ${prod.municipio})? Esta ação atualizará imediatamente os indicadores e o mapa.`,
+        confirmText: 'Sim, Excluir',
+        onConfirm: () => {
+          producers = producers.filter(p => p.id !== id);
+          if (selectedProducerId === id) {
+            selectedProducerId = null;
+          }
+          saveProducersToStorage();
+          populateMunicipioDropdowns();
+          refreshAllViews();
+          deleteRecordFromCloud(id);
+          showToast(`Registro de "${prod.produtor}" removido.`, 'info');
+        }
+      });
+    }
+
+    function confirmRestoreOriginal() {
+      openConfirmModal({
+        title: 'Restaurar Planilha Original SENAR/PA',
+        message: 'Isso substituirá suas edições locais e na nuvem pelos 56 produtores originais da planilha "Barter assinado enviar SENAR.xlsx". Deseja continuar?',
+        confirmText: 'Restaurar Base Original',
+        onConfirm: () => {
+          producers = JSON.parse(JSON.stringify(INITIAL_PRODUCERS));
+          selectedProducerId = null;
+          saveProducersToStorage();
+          populateMunicipioDropdowns();
+          resetAllFilters();
+          pushAllToCloud();
+          showToast('Planilha original (56 produtores) restaurada com sucesso!', 'success');
+        }
+      });
+    }
+
+    // =========================================================================
+    // IMPORTAÇÃO E EXPORTAÇÃO EXCEL (.XLSX) VIA SHEETJS
+    // =========================================================================
+    function exportToExcel() {
+      if (typeof XLSX === 'undefined') {
+        showToast('Biblioteca SheetJS não carregada. Verifique sua conexão.', 'error');
+        return;
+      }
+
+      const rows = producers.map(p => ({
+        'ID': p.id,
+        'Produtor': p.produtor,
+        'CPF/CNPJ': p.cpf_cnpj,
+        'Fazenda': p.fazenda,
+        'Município': p.municipio,
+        'Área (ha)': Number(p.area_ha) || 0,
+        'Passivo PRODES 2008-2025 (ha)': Number(p.passivo_prodes) || 0,
+        'Empresa Regularização': p.empresa_regularizacao,
+        'Endereço / Vicinal': p.endereco,
+        'Telefone': p.telefone,
+        'Termo Barter Assinado': p.termo_barter,
+        'Etapa CRM': p.status_crm,
+        'Latitude': Number(p.lat),
+        'Longitude': Number(p.lng),
+        'Observações': p.observacoes || ''
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Produtores_Barter_SENAR');
+
+      const dateStr = new Date().toISOString().slice(0, 10);
+      XLSX.writeFile(workbook, `CRM_Barter_Regularizacao_SENAR_PA_${dateStr}.xlsx`);
+      showToast('Planilha Excel (.xlsx) exportada com sucesso!', 'success');
+    }
+
+    function handleExcelImport(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const jsonRows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+
+          if (!jsonRows || jsonRows.length === 0) {
+            showToast('A planilha selecionada está vazia.', 'error');
+            return;
+          }
+
+          const imported = jsonRows.map((row, idx) => {
+            const normalizedRow = {};
+            Object.keys(row).forEach(k => {
+              const cleanKey = k.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+              normalizedRow[cleanKey] = row[k];
+            });
+
+            const getVal = (candidates, fallback = '') => {
+              for (const cand of candidates) {
+                const foundKey = Object.keys(normalizedRow).find(k => k.includes(cand));
+                if (foundKey !== undefined && normalizedRow[foundKey] !== '') {
+                  return normalizedRow[foundKey];
+                }
+              }
+              return fallback;
+            };
+
+            const municipio = String(getVal(['municipio', 'cidade'], 'Uruará')).trim();
+            const centroid = MUNICIPALITY_CENTROIDS[municipio] || { lat: -3.65, lng: -53.2 };
+
+            const latParsed = parseFloat(String(getVal(['lat', 'latitude'], '')).replace(',', '.'));
+            const lngParsed = parseFloat(String(getVal(['lng', 'lon', 'longitude'], '')).replace(',', '.'));
+
+            const areaParsed = parseFloat(String(getVal(['area'], 0)).replace(',', '.')) || 0;
+            const prodesParsed = parseFloat(String(getVal(['prodes', 'passivo'], 0)).replace(',', '.')) || 0;
+
+            return {
+              id: Number(getVal(['id'], idx + 1)) || idx + 1,
+              produtor: String(getVal(['produtor', 'nome'], `Produtor Importado ${idx + 1}`)).trim(),
+              cpf_cnpj: String(getVal(['cpf', 'cnpj', 'documento'], 'Não informado')).trim(),
+              fazenda: String(getVal(['fazenda', 'propriedade', 'sitio'], 'Propriedade Rural')).trim(),
+              municipio: municipio,
+              area_ha: areaParsed,
+              passivo_prodes: prodesParsed,
+              empresa_regularizacao: String(getVal(['empresa', 'regularizacao'], 'Belterra')).trim(),
+              endereco: String(getVal(['endereco', 'vicinal', 'local'], 'Não informado')).trim(),
+              telefone: String(getVal(['telefone', 'celular', 'contato'], '')).trim(),
+              termo_barter: String(getVal(['termo', 'barter'], 'Sim')).trim(),
+              status_crm: String(getVal(['etapa', 'status'], 'Termo Assinado')).trim(),
+              lat: !isNaN(latParsed) ? latParsed : Number((centroid.lat + (Math.random() - 0.5) * 0.04).toFixed(5)),
+              lng: !isNaN(lngParsed) ? lngParsed : Number((centroid.lng + (Math.random() - 0.5) * 0.04).toFixed(5)),
+              observacoes: String(getVal(['observac', 'nota', 'historico'], '')).trim()
+            };
+          });
+
+          producers = imported;
+          selectedProducerId = null;
+          saveProducersToStorage();
+          populateMunicipioDropdowns();
+          refreshAllViews();
+          pushAllToCloud();
+          showToast(`${imported.length} registros importados de "${file.name}"!`, 'success');
+        } catch (err) {
+          console.error('Erro ao importar Excel:', err);
+          showToast('Erro ao processar arquivo Excel. Verifique o formato da planilha.', 'error');
+        } finally {
+          event.target.value = '';
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    // =========================================================================
+    // SISTEMA DE NOTIFICAÇÕES (TOASTS)
+    // =========================================================================
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+
+      const styles = {
+        success: 'bg-[#14532d] text-white border-emerald-700',
+        error: 'bg-red-700 text-white border-red-800',
+        info: 'bg-slate-800 text-white border-slate-700'
+      };
+
+      toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl border shadow-xl text-xs sm:text-sm font-medium animate-fade-up ${styles[type] || styles.info}`;
+      toast.innerHTML = `
+        <span class="w-2 h-2 rounded-full bg-amber-400 shrink-0"></span>
+        <span class="flex-1">${escapeHTML(message)}</span>
+      `;
+
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(8px)';
+        toast.style.transition = 'all 0.25s ease';
+        setTimeout(() => toast.remove(), 260);
+      }, 3600);
+    }
+  </script>
+</body>
+</html>
