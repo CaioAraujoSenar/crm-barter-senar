@@ -644,7 +644,7 @@
                 onchange="switchBaseMap(this.value)"
                 class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#166534] cursor-pointer"
               >
-                <option value="voyager">Mapa de Ruas (CartoDB Voyager)</option>
+                <option value="voyager">Mapa de Ruas (OpenStreetMap)</option>
                 <option value="satellite">Imagem de Satélite (Esri World Imagery)</option>
               </select>
             </div>
@@ -2050,10 +2050,21 @@ function doPost(e) {
       if (leafletMap) return;
 
       // Camadas Base: CartoDB Voyager (sem bloqueio de Referer) e Satélite Esri World Imagery
-      const voyagerLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        subdomains: 'abcd',
-        maxZoom: 20,
-        attribution: '&copy; OpenStreetMap contributors &copy; CARTO | SENAR/PA'
+      const voyagerLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | SENAR/PA'
+      });
+
+      // Se o OpenStreetMap falhar, troca automaticamente para o mapa de ruas da Esri
+      let osmFallbackDone = false;
+      voyagerLayer.on('tileerror', () => {
+        if (osmFallbackDone || !leafletMap || !leafletMap.hasLayer(voyagerLayer)) return;
+        osmFallbackDone = true;
+        leafletMap.removeLayer(voyagerLayer);
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+          maxZoom: 19,
+          attribution: 'Tiles &copy; Esri'
+        }).addTo(leafletMap);
       });
 
       const satelliteLayer = L.tileLayer(
